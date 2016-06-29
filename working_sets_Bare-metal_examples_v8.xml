@@ -1,2 +1,0 @@
-<?xml version="1.0"?>
-<working_sets><working_set name="ARMv8 Bare-Metal"><projdir>./startup_AEMv8-FVP_AArch64</projdir><projdir>./startup_ARMv8x1-FM</projdir><projdir>./startup_Cortex-A53-A57-A72</projdir><projdir>./calendar_ARMv8</projdir><projdir>./startup_AEMv8-FVP_AArch64_with_AArch32_app</projdir><projdir>./fireworks_ARMv8x1-FM</projdir><projdir>./fireworks_AEMv8-FVP</projdir></working_set></working_sets>
