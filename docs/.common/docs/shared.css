@@ -1,0 +1,167 @@
+/* Copyright (C) ARM Limited, 2010. All rights reserved. */
+/* Shared style applied to all pages */
+body {
+    font-size: 62.5%;    /* default 1.0em = 16px, so 62.5% of 16 = 10. Therefore, 1.0em now = 10px, 1.2em now = 12px etc. */
+    font-family: Verdana, Arial, "Lucida Grande", sans-serif;
+    margin: 0px;
+    padding: 0;
+    background: #fff;
+    min-width: 999px;
+}
+
+/* Layout */
+    #header {
+        /* background-image: url(images/hdr_repeat.jpg); */
+        background-repeat: repeat-x;
+        height: 75px;
+    }
+.footer {
+    height: 25px;
+    padding-top: 10px;
+    padding-left: 10px;
+    display: block;
+}
+div.double_dotted_divider {
+    height: 1px;
+    border-top: dotted 1px #c8d8e5;
+    border-bottom: dotted 1px #c8d8e5;
+    background: #f2f5f7;
+}
+
+    #header .right {
+        /* background-image: url(images/hdr_right.jpg); */
+        background-repeat: no-repeat;
+        height: 75px;
+        background-position: right;
+    }
+    #header .left {
+        /* background-image: url(images/hdr_left.jpg); */
+        background-repeat: no-repeat;
+        height: 75px;
+        width: 501px;
+        float: left;
+    }
+    #header .left .logo {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+    }
+    
+    #content_container {
+        margin-top: 0px;
+        margin-right: 20px;
+        margin-bottom: 10px;
+        margin-left: 20px;
+        min-height: 300px;
+    }
+
+    #content_container code {
+        margin-top: 2px;
+        margin-left: 5px;
+        margin-bottom: 2px;
+        color:#333399;
+        font-family: 'Lucida Sans Typewriter', 'Courier New', Courier, monospace;
+        font-size: 1.0em;
+    }
+
+/* Return to home navigation stripe at top of all pages. */
+    #sub_menu {
+        margin-top: 0px;
+        margin-left: 0px;
+        background-image: url(images/blue_bar.png);
+        background-position: 0px 0px;
+        background-repeat: repeat-x;
+        height: 30px;
+    }    
+
+
+/* Content Styling */
+    .para {
+        font-size: 1.2em;
+        margin-bottom: 0px;
+        margin-top: 10px;
+    }
+    
+    p {
+        font-size: 1.2em;
+        margin-bottom: 0px;
+        margin-top: 10px;
+    }
+
+    .larger {
+        font-size: 1.2em;
+        margin-bottom: 0px;
+        margin-top: 10px;
+    }
+
+    h1 {
+        font-size: 1.6em;
+        color: #025066;
+        margin-top: 34px;
+        margin-bottom: 0px;
+    }
+    h2 {
+        font-size: 1.4em;
+        font-weight: bold;
+        color: #025066;
+        margin-bottom: 0px;
+        }
+    h3 {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #025066;
+        margin-bottom: 0px;
+    }
+    a {
+        color: #127490;
+        }
+        a:hover {
+        color: #014153;
+        }
+
+    div.indent {
+        margin-left:10px;
+        margin-right: 10px;
+        margin-bottom: 0px;
+        margin-top: 10px;
+    }
+
+    div.note {
+        font-size: 1.0em;
+        margin-left:10px;
+        margin-right: 10px;
+        margin-bottom: 0px;
+        margin-top: 10px;
+    }
+
+    ul li {
+        font-size: 1.0em;
+        list-style-image: url(images/bullet_blue.png);
+    }
+
+    div.toc ul li {
+        font-size: 1.0em;
+        list-style-image: url(images/bullet_blue.png);
+    }
+
+        .table { margin-top: 5px; margin-bottom: 5px; padding:0px; }
+        .table-cell { font-size: 75%; }
+        .image { margin-top: 5px; margin-bottom: 5px; padding:0px; }
+        .note { margin-bottom: 15px; background: #E0E0E0 }
+        .toc { font-size: 115%; margin-top: 10px; margin-bottom: 15px; }
+        .italic { font-style: italic; }
+        .bold { font-weight: bold; }
+        .emphasis { font-weight: bold; font-style: italic; }
+        .underline { text-decoration: underline; }
+        .bold-underline { text-decoration: underline; font-weight: bold; }
+        .arg { font-family: 'Lucida Sans Typewriter', 'Courier New', Courier, monospace; color:#333399; }
+        .repl { font-style: italic; }
+        .code { font-size: 1.2em; margin-top: 2px; margin-left: 20px; margin-bottom: 2px; color: #333399; 
+                font-family: 'Lucida Sans Typewriter', 'Courier New', Courier, monospace; }
+        .menu { font-weight: bold; }
+        .interface { font-weight: bold; }
+        ul {margin-top: 2px; margin-bottom: 5px; }
+        ol {list-style-type:decimal; margin-top: 2px; margin-bottom: 5px; }
+        ol ol {list-style-type:lower-alpha; margin-top: 2px; margin-bottom: 5px; }
+        ol ol ol {list-style-type:lower-roman; margin-top: 2px; margin-bottom: 5px; }
+

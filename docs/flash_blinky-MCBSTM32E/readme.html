@@ -1,0 +1,159 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>MCBSTM32E Blinky example</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="MCBSTM32E%20Blinky%20example"></a><h1>MCBSTM32E Blinky example - ARM®DS-5™</h1>
+    
+        <div class="para">The 'Blinky' project is a simple program for the ST 'STM32F103ZE' microcontroller.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">The example has been extracted from Keil MDK-ARM (Microcontroller Development Kit).</div>
+		<div class="para">The 'Blinky' project is a simple program for the ST 'STM32F103ZE' microcontroller using Keil 'MCBSTM32E' Evaluation Board, compliant to Cortex Microcontroller Software Interface Standard (CMSIS v2.0).</div>
+        <div class="para">This is a simple example for the purposes of illustrating features of the DS-5 Debugger.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <ul>
+           <li><div class="para">A Keil MCBSTM32EXL Evaluation Board.</div></li>
+           <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to Keil MCBSTM32EXL Evaluation Board.</div></li>
+        </ul>
+
+        <div class="para">This example is intended to be built with ARM Compiler 5. If you wish to modify and rebuild the example, you must use ARM Compiler 5 to rebuild it.</div>
+        <div class="para">This example is intended for running on Keil MCBSTM32EXL Evaluation Board, but could be easily ported to other Cortex-M3 platforms.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">flash_blinky-MCBSTM32E.launch</span> is provided.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example"></a><h2>Building the example</h2>
+        <div class="para">This example can be built with ARM Compiler 5 using the supplied Eclipse project, or directly on the command line with the supplied <span class="arg">makefile</span>.</div>
+        <div class="para">The Eclipse project is a managed builder project, that creates a makefile in the /Debug directory.</div>
+        <div class="para">The executable builds with a base address 0x08000000, and is intended for running in on-chip FLASH on Keil MCBSTM32EXL Evaluation Board, but could be easily ported to other Cortex-M3 platforms simply by changing the code and data addresses in the scatter-file <span class="arg">Blinky.scat</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\flash_blinky-MCBSTM32E</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><h2>Running the example</h2>
+        <ol>
+            <li><div class="para">Power-up the Keil MCBSTM32EXL Evaluation Board.</div></li>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">flash_blinky-MCBSTM32E</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field,
+                or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported:
+                <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to connect to the target.  The debugger will connect to the board, perform a system reset and run to main. You can change the debug connection by modifying the Execute debugger commands in the <span class="interface">Debugger</span> tab.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li>
+<div class="para">Run the executable (press F8). </div>
+            </li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Programming%20the%20On-Chip%20Flash%20Memory"></a><h2>Programming the On-Chip Flash Memory</h2>
+        <div class="para">The example provides a ready-made script <span class="arg">flash_board.ds</span> that executes the DS-5 flash command to reprogram the on-chip flash.</div>		
+        <ol>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">flash_blinky-MCBSTM32E</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field,
+                or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported:
+                <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">Select the <span class="interface">Debugger</span> tab, tick <span class="interface">Run debug initialization debugger script (.ds/ .py)</span> check box, 
+            click on <span class="interface">Workspace</span> and select <span class="arg">flash_board.ds</span> from the <span class="arg">flash_blinky-MCBSTM32E</span> project.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span>. The script, after showing information of the internal flash, will reflash the on-chip flash with the new image.</div></li>
+			<li><div class="para">After reflashing the microcontroller, the debugger will perform a system reset and run to main.</div></li>
+        </ol>
+    </div>
+	
+    <div class="indent">
+        <a name="Example%20functionality"></a><h2>Example functionality</h2>
+        <div class="para">Clock Settings:</div>
+        <ul>
+            <li>
+            <div class="para">XTAL = 8.00 MHz</div>
+            </li>
+            <li>
+            <div class="para">SYSCLK = 72.00 MHz</div>
+            </li>			
+            <li>
+            <div class="para">HCLK = SYSCLK = 72.00 MHz</div>
+            </li>						
+        </ul>
+		<div class="para">SysTick Timer is used in interrupt mode.</div>
+		<div class="para">8 LEDs blink with speed depending on potentiometer position.</div>		
+		<div class="para">Colour GLCD display shows:</div>
+        <ul>
+            <li>
+            <div class="para">Init message.</div>
+            </li>
+            <li>
+            <div class="para">AD value and bargraph (depending on potentiometer position).</div>
+            </li>			
+            <li>
+            <div class="para">Button and joystick status.</div>
+            </li>						
+        </ul>		
+		<div class="para">AD conversion is done in DMA mode.</div>
+		<div class="para">AD settings: 12 bit resolution.</div>
+		<div class="para">AD value is output onto serial port USART2.</div>
+		<div class="para">USART2 settings: 115200 baud, 8 data bits, no parity, 1 stop bit.</div>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Example ARM Linux Distribution for FVP Models</title>
+<link rel="stylesheet" href="../../../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../../../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    <a name="Example%20ARM%20Linux%20Distribution%20for%20FVP%20Models"></a><h1>Example ARM Linux Distribution for FVP Models - ARM®DS-5™</h1>
+    <div class="toc"><div class="indent">
+<b>Table of Contents:</b><ul>
+<li><a href="#Purpose%20and%20Scope">Purpose and Scope</a></li>
+<li><a href="#About%20the%20VE-Cortex-A9x1%20FVP%20model%20and%20the%20VE-Cortex-A9x4%20FVP%20model">About the VE-Cortex-A9x1 FVP model and the VE-Cortex-A9x4 FVP model</a></li>
+<li><a href="#Components%20of%20the%20Distribution">Components of the Distribution</a></li>
+<li><a href="#Running%20the%20Distribution%20on%20VE-Cortex-A9x1%20FVP%20model%20or%20VE-Cortex-A9x4%20FVP%20model%20">Running the Distribution on VE-Cortex-A9x1 FVP model or VE-Cortex-A9x4 FVP model </a></li>
+<li><a href="#Interacting%20with%20the%20Linux%20System">Interacting with the Linux System</a></li>
+<li><a href="#Building%20the%20Kernel%20&amp;%20Modules">Building the Kernel &amp; Modules</a></li>
+<li><a href="#Building%20the%20Boot%20Images">Building the Boot Images</a></li>
+<li><a href="#Running%20the%20Distribution%20From%20the%20Command%20Line">Running the Distribution From the Command Line</a></li>
+<li><a href="#Debugging%20the%20Kernel%20on%20a%20Running%20Model">Debugging the Kernel on a Running Model</a></li>
+<li><a href="#Connecting%20to%20Serial%20Ports">Connecting to Serial Ports</a></li>
+<li><a href="#Working%20with%20Host%20Files%20on%20the%20Target">Working with Host Files on the Target</a></li>
+<li><a href="#Using%20the%20Example%20Distribution%20to%20work%20with%20your%20own%20Application">Using the Example Distribution to work with your own Application</a></li>
+</ul>
+</div></div>
+    
+        <div class="para">Instructions for using the example ARM Linux distribution on FVP models.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../../../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20Scope"></a><h2>Purpose and Scope</h2>
+        <div class="para">This document describes the "DS-5 Linux Example Distribution" package that can be downloaded from the Downloads page of <a href="http://ds.arm.com" title="External link"><i>ARM Development Studio 5 (DS-5) Web Site</i></a>, its use within DS-5, and its operation on the VE-Cortex-A9x1 FVP model and VE-Cortex-A9x4 FVP model supplied with DS-5.  It can be imported into Eclipse in the same way as the other examples, or it can be unzipped alongside the other examples.</div>
+        <div class="para">This distribution is intended to allow you to:</div>
+        <ul>
+            <li><div class="para">Boot Linux on the VE-Cortex-A9x1 FVP model and VE-Cortex-A9x4 FVP model supplied with DS-5, using the pre-built Linux images</div></li>
+            <li><div class="para">Re-build the Linux application examples supplied with DS-5, using the sysroot headers and libraries</div></li>
+            <li><div class="para">Re-build the kernel module example supplied with DS-5, against the kernel source tree</div></li>
+            <li><div class="para">Debug the kernel at source-level, using the vmlinux file and kernel source tree</div></li>
+        </ul>
+        <div class="para">It is neither intended nor supported for any other purpose.</div>
+        <div class="para">This project is not required to run the Linux application examples, because those projects include pre-built images. It <span class="bold">is</span> required if you wish to rebuild the Linux application examples.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <div class="para">No special hardware is required to run the example ARM Linux distribution. All required software is included in DS-5 except for the distribution itself.</div>
+        <div class="para">If you wish to rebuild components of this distribution then you will need access to a Linux host machine. Attempting to perform these tasks on a Windows host is neither recommended nor supported. You may need root privileges on the host system for some operations involved in rebuilding the target filesystem.</div>
+
+        <h3>Terminology</h3>
+        <div class="para">This document discusses 'host' and 'target' systems. The 'host' system is the Linux or Windows desktop computer that you use for most of your work. The 'target' system is some ARM-based hardware (or model of such hardware) on which the example ARM Linux distribution is running.</div>
+    </div>
+    <div class="indent">
+        <a name="About%20the%20VE-Cortex-A9x1%20FVP%20model%20and%20the%20VE-Cortex-A9x4%20FVP%20model"></a><h2>About the VE-Cortex-A9x1 FVP model and the VE-Cortex-A9x4 FVP model</h2>
+        <div class="para">The VE-Cortex-A9x1 FVP model is a model of the Versatile Express platform with a single Cortex-A9 Core Tile.  The VE-Cortex-A9x4 FVP model is a model of the Versatile Express platform with a quadcore Cortex-A9 Core Tile.  More details about these models can be found in <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0837-/index.html"><i>Fixed Virtual Platforms FVP Reference Guide</i></a>. The supplied distribution may be used with these models for both application debug and kernel debug.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Components%20of%20the%20Distribution"></a><h2>Components of the Distribution</h2>
+        <div class="para">The distribution is made up of the following component directories under <span class="arg">distribution</span>:</div>
+        <ul>
+            <li><div class="para">
+<span class="bold">boot</span> : Contains the bootloader <span class="arg">boot.S</span> and pre-built Linux kernel and filesystem <span class="arg"><span class="repl">&lt;rootfs&gt;</span>.image</span> images, located in <span class="arg">boot/FVP/FVP_VE_V7</span>.  Also contains a Makefile to support rebuilding the kernel for the kernel module example</div></li>
+            <li><div class="para">
+<span class="bold">device_tree</span> : Contains device trees for a selection of ARM Fast Models</div></li>
+            <li><div class="para">
+<span class="bold">filesystem</span> Contains a <span class="bold">linaro_hf</span> sysroot providing headers and libraries compatible with the example distribution. These can be used to rebuild Linux application examples for hardfp targets.</div></li>
+            <li><div class="para">
+<span class="bold">kernel</span> : Contains the kernel source tree <span class="arg">kernel/<span class="repl">&lt;version&gt;</span>/source.tar.bz2</span> and a build of the kernel (and its modules), including vmlinux file, in <span class="arg">kernel/<span class="repl">&lt;version&gt;</span>/built/VE_V7</span>
+</div></li>
+       </ul>
+       <div class="para">The bootloader and kernel are assembled into a composite image, <span class="arg">boot/FVP/FVP_VE_V7/FVP_VE_V7.axf</span>. This image can be run on the appropriate model as any other bare-metal application.</div>
+       <div class="para">On boot, the root filesystem will be an ext2 filesystem running from the model's MMC card. It is read-only apart from non-persistent tmpfs mounts created at boot time.</div>
+   </div>
+
+    <div class="indent">
+        <a name="Running%20the%20Distribution%20on%20VE-Cortex-A9x1%20FVP%20model%20or%20VE-Cortex-A9x4%20FVP%20model%20"></a><a name="running"></a><h2>Running the Distribution on VE-Cortex-A9x1 FVP model or VE-Cortex-A9x4 FVP model </h2>
+        <div class="para">The usual way to run the distribution is via the DS-5 Debugger. This assumes that you have a target application to debug. If you want to run the distribution via the command line, or if you want to run the distribution for some purpose other than debugging an application, then see the instructions in <a href="./readme.html#cli_run"><i>Running the Distribution From the Command Line</i></a>.</div>
+        <ol>
+          <li><div class="para">In the DS-5 Debug perspective <span class="arg">Debug Configurations</span> dialog, create a new launch configuration and name it as e.g. <span class="arg">Debug My App</span>.</div></li>
+          <li><div class="para">Set <span class="arg">Platform</span> to <span class="arg">ARM FVP (Installed with DS-5) &gt; Cortex-A9x1 pre-configured to boot ARM Embedded Linux &gt; Linux Application Debug</span>.</div></li>
+          <li><div class="para">Ensure that the remaining options are set appropriately as described, for example, in <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a>.</div></li>
+          <li><div class="para">Press the <span class="arg">Debug</span> button.</div></li>
+          <li><div class="para">The distribution will launch on the model and the DS-5 Debugger will connect to a gdbserver process on the target.</div></li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Interacting%20with%20the%20Linux%20System"></a><h2>Interacting with the Linux System</h2>
+        <h3>Mouse, Keyboard, Display</h3>
+        <div class="para">The model boots into a GNOME Mobile desktop, which can be interacted with by selecting the model's display window and then using the mouse or typing as normal.</div>
+        <div class="note"><div class="para">
+<div class="bold">Note</div>
+<div>The host mouse pointer may not align with the target mouse pointer. In this event, you can hide the host mouse pointer by pressing the key combination indicated in top right-hand corner of the model's display window. Pressing this key combination again will redisplay the host mouse pointer.</div>
+</div></div>
+
+        <h3>Remote System Explorer</h3>
+        <div class="para">The Remote System Explorer plug-ins are integrated into the DS-5 Eclipse IDE. This can be used to log on to target systems and to transfer files between host and target systems. Alternatively, you can use the methods referred to below.</div>
+
+        <h3>Logging on to the Target Linux System</h3>
+        <div class="para">The distribution will either run a shell on the boot console, or permit login on the boot console. You should be able to access this shell via serial port. Login as <span class="emphasis"><span class="bold">root</span></span> with no password.</div>
+        <div class="para">The distribution also runs an ssh server, which can be connected to as with any ssh session. The ssh server accepts passwordless root logins, for example,</div>
+        <pre class="code">ssh root@192.168.0.2</pre>
+        <div class="para">where <span class="arg">192.168.0.2</span> is the IP address of the target Linux system.</div>
+        <div class="para">Be aware that the ssh server included in the distribution does not support tunnelling of X-sessions.</div>
+
+        <h3>Transferring Files Between Host and Target</h3>
+        <div class="para">scp can be used to transfer files. For example, to transfer the file <span class="arg">foo</span> from the current directory on the host to <span class="arg">/root</span> on the target system, type:</div>
+        <pre class="code">scp foo root@192.168.0.2:</pre>
+
+        <h3>Shutting Down the Target Linux System</h3>
+        <div class="para">Before rebooting or powering down the system you should run the command <span class="arg">halt</span> and wait until the system displays the message <span class="arg">System halted</span>.  Powering down without halting risks filesystem corruption.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20the%20Kernel%20&amp;%20Modules"></a><a name="kernel"></a><h2>Building the Kernel &amp; Modules</h2>
+        <div class="para">The <span class="arg">kernel/<span class="repl">&lt;version&gt;</span></span> directory contains prebuilt kernel images for the supported ARM targets and the source files required to generate those images.</div>
+
+        <h3>Prebuilt Kernel Images</h3>
+        <div class="para">The <span class="arg">kernel/<span class="repl">&lt;version&gt;</span>/built</span> directory contains prebuilt kernel images for supported targets.
+        Each build is under a directory named for the configuration file used to build it. The configuration file can be found in the directory <span class="arg">kernel/<span class="repl">&lt;version&gt;</span>/configs</span>.</div>
+        <div class="para">Each configuration directory contains all configuration-specific source generated by the kernel build for that configuration, along with some binaries and other outputs produced by the build. Exact contents may vary for different targets but the following important files are likely to be present in each built tree:</div>
+        <ul>
+            <li><div class="para">
+<span class="arg">./System.map</span>: Kernel symbol table</div></li>
+            <li><div class="para">
+<span class="arg">./vmlinux</span>: Debug image of the kernel</div></li>
+            <li><div class="para">
+<span class="arg">./arch/arm/boot/Image</span>: Raw kernel binary</div></li>
+            <li><div class="para">
+<span class="arg">./arch/arm/boot/uImage</span>: Raw kernel binary with a U-Boot header</div></li>
+            <li><div class="para">
+<span class="arg">./arch/arm/boot/zImage</span>: Compressed raw kernel binary</div></li>
+        </ul>
+        <div class="para">Be sure to use the files at the paths give in the above list. Similarly named files may exist at other locations in the kernel, for example <span class="arg">arch/arm/boot/compressed/vmlinux</span> is not useful for kernel debugging.</div>
+
+        <h3>Sources and Rebuilding</h3>
+        <div class="para">The <span class="arg">kernel/<span class="repl">&lt;version&gt;</span></span> directory contains the following directories relating to sources and rebuilding:</div>
+        <ul>
+            <li><div class="para">
+<span class="arg">source.tar.bz2</span>: Kernel source</div></li>
+            <li><div class="para">
+<span class="arg">configs</span>: Config files used to build the pre-built kernels in matching sub-directories of the <span class="arg">built</span> directory.</div></li>
+            <li><div class="para">
+<span class="arg">patches</span>: Patches that were applied to an original kernel source tree to produce <span class="arg">source.tar.bz2</span>. The order in which the patches were applied is given by <span class="arg">patches/order</span>.</div></li>
+            <li><div class="para">
+<span class="arg">modules</span>: Source of any modules built with the kernel.</div></li>
+        </ul>
+        <div class="para">You should not unpack <span class="arg">source.tar.bz2</span> on a Windows host as the Linux kernel source includes files with names that differ only by case.</div>
+
+        <div class="para">To build one of the provided kernels:</div>
+        <ol>
+                <li><div class="para">Make sure that you have the DS-5 bin directory on your path, in order to pick up the tools that will be used to build the kernel.</div></li>
+                <li>
+<div class="para">go to the <span class="arg">distribution</span> directory and type:</div>
+                        <pre class="code">make SYSTEM=<span class="repl">&lt;target&gt;</span> kernel_image</pre>
+                      <div class="para">where <span class="repl">&lt;target&gt;</span> is the name of the target distribution that you wish to build. To see all possible target systems, type <span class="arg">make list</span>.</div>
+                </li>
+        </ol>
+
+        <h3>Rebuilding Modules</h3>
+        <div class="para">The following process will rebuild kernel modules on a Linux host. Attempting to build kernel modules on a Windows host is neither recommended nor supported.</div>
+        <div class="para">In the following instructions, <span class="repl">&lt;output_dir&gt;</span> is the kernel's out-of-tree build location (e.g. <span class="arg">../../built/VE_V7</span>), <span class="repl">&lt;source_dir&gt;</span> is the kernel's unpacked source tree (e.g. <span class="arg">../../source</span>) and <span class="repl">&lt;target&gt;</span> is the target system as given by <span class="arg">make list</span> run in <span class="arg">distribution</span>.</div>
+        <ol>
+            <li><div class="para">Make sure that you have the DS-5 <span class="arg">bin</span> directory on your path, in order to pick up the tools that were used to build the kernel.</div></li>
+            <li><div class="para">In <span class="arg">distribution</span>, type <span class="arg">make SYSTEM=<span class="repl">&lt;target&gt;</span> trees</span>, to ensure that source and built trees for your target are suitably initialized to support the module build (e.g. <span class="arg">make SYSTEM=FVP_VE_V7 trees</span>).</div></li>
+            <li><div class="para">Change directory to the top of the module's source tree, e.g. <span class="arg">cd kernel/linux-linaro-3.4-rc3-2012.04-0-patched/modules/gator-driver</span>
+</div></li>
+            <li><div class="para">(Optional) If you want to clean the module before building, type <span class="arg">make ARCH=arm O=<span class="repl">&lt;output_dir&gt;</span> -C <span class="repl">&lt;source_dir&gt;</span> M=`pwd` clean</span>
+</div></li>
+            <li>
+                <div class="para">Build the module:</div>
+                <pre class="code">make ARCH=arm O=<span class="repl">&lt;output_dir&gt;</span> -C <span class="repl">&lt;source_dir&gt;</span> M=`pwd` modules</pre>
+            </li>
+            <li>
+                <div class="para">(Optional) Install the built module to a location on the host:</div>
+                <pre class="code">make ARCH=arm O=<span class="repl">&lt;output_dir&gt;</span> -C <span class="repl">&lt;source_dir&gt;</span> M=`pwd` INSTALL_MOD_PATH=<span class="repl">&lt;target_root_dir&gt;</span> modules_install</pre>
+            </li>
+        </ol>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20the%20Boot%20Images"></a><a name="boot"></a><h2>Building the Boot Images</h2>
+        <div class="para">The <span class="arg">boot</span> directory contains these instructions, images that can be used to boot Linux on the target, and the supporting files required to rebuild those images.</div>
+        <h3>Rebuilding the Images</h3>
+        <div class="para">To rebuild the images go to the <span class="arg">distribution</span> directory and type:</div>
+        <pre class="code">make SYSTEM=<span class="repl">&lt;target&gt;</span></pre>
+        <div class="para">where <span class="repl">&lt;target&gt;</span> is the name of the target distribution that you wish to build. To see all possible target systems, type <span class="arg">make list</span>.</div>
+
+        
+        <div class="para">The filesystem image, and most of its component binaries, can be rebuilt using a combination of scratchbox, the matrix build system and GCC. See the <a href="http://www.linux-arm.org" title="External link"><i>Linux on ARM Wiki</i></a> for information and sources.</div>
+        <div class="para">The remainder of the component binaries can be built from the source tarballs provided with the gcc compiler. See the <span class="arg">getting_started</span> document in the <span class="arg">documents/gcc</span> directory of your installation for details about these.</div>
+        <div class="para">The example distribution is not supported when used with modified filesystem images.</div>
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20Distribution%20From%20the%20Command%20Line"></a><a name="cli_run"></a><h2>Running the Distribution From the Command Line</h2>
+        <div class="para">It is possible to run the distribution from the command line. Reasons for doing this might include a preference for command line interfaces, to run the distribution without necessarily debugging any application or to run the distribution to debug the kernel.</div>
+        <div class="para">To do this, in a new DS-5 Shell (Windows), or in a shell with the DS-5 <span class="arg">bin</span> directory on the path (Linux), run the appropriate command in the <span class="arg">distribution</span> directory:</div>
+        <pre class="code">FVP_VE_Cortex-A9x1 or FVP_VE_Cortex-A9x4 -a boot/FVP/FVP_VE_V7/FVP_VE_V7.axf --data kernel/<span class="repl">&lt;version&gt;</span>/built/VE_V7/arch/arm/boot/Image@0x80008000 --data boot/FVP/FVP_VE_V7/rtsm_ve-cortex_a9x4_p9.dtb@0x80f00000 -C motherboard.mmc.p_mmc_file=boot/FVP/FVP_VE_V7/<span class="repl">&lt;rootfs&gt;</span>.image --cadi-server --run</pre>
+        <div class="para">This will start the model with a CADI server so that the DS-5 Debugger can be attached.</div>
+        <div class="para">Note: For older (pre FM9.4) Fast Models without Virtio P9 support (as provided in 32-bit versions of DS-5), use <span class="arg">rtsm_ve-cortex_a9x4.dtb</span> instead of <span class="arg">rtsm_ve-cortex_a9x4_p9.dtb</span>.</div>
+       <div class="para">The meanings of other interesting <span class="arg">-C</span> options are given in the following table:</div>
+       <div class="table"><table border="1">
+           <tr>
+<td valign="top" bgcolor="#E0E0E0" class="table-cell"><span class="bold"><div class="table">Option</div></span></td>
+<td valign="top" bgcolor="#E0E0E0" class="table-cell"><span class="bold"><div class="table">Explanation</div></span></td>
+</tr>
+           <tr>
+               <td valign="top" class="table-cell"><div class="table"><span class="arg">terminal_3.start_telnet=false</span></div></td>
+               <td valign="top" class="table-cell"><div class="table">Enable/disable auto-starting of telnet when a process listens on serial port 3. Only required if doing application debug.</div></td>
+           </tr>
+           <tr>
+               <td valign="top" class="table-cell"><div class="table"><span class="arg">terminal_3.mode=raw</span></div></td>
+               <td valign="top" class="table-cell"><div class="table">Do not assume that serial port 3 will be used exclusively for telnet. Only required if doing application debug.</div></td>
+           </tr>
+           <tr>
+               <td valign="top" class="table-cell"><div class="table"><span class="arg">baseboard.uart_3.untimed_fifos=true</span></div></td>
+               <td valign="top" class="table-cell"><div class="table">Unclock serial port 3, so that it runs faster. Only required if doing application debug.</div></td>
+           </tr>
+           <tr>
+               <td valign="top" class="table-cell"><div class="table"><span class="arg">motherboard.virtiop9device.root_path=<span class="repl">&lt;path&gt;</span></span></div></td>
+               <td valign="top" class="table-cell"><div class="table">Make part of the host filesystem available on the model via Virtio P9 (for Fast Models 9.4 and later).</div></td>
+           </tr>
+           <tr>
+               <td valign="top" class="table-cell"><div class="table"><span class="arg">motherboard.vfs2.mount=<span class="repl">&lt;path&gt;</span></span></div></td>
+               <td valign="top" class="table-cell"><div class="table">Make part of the host filesystem available on the model via VMFS (for Fast Models 9.3 and earlier).</div></td>
+           </tr>
+        </table></div>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20the%20Kernel%20on%20a%20Running%20Model"></a><h2>Debugging the Kernel on a Running Model</h2>
+        <div class="para">Start the model running by launching application debug as described at <a href="./readme.html#running"><i>Running the Distribution on VE-Cortex-A9x1 FVP model or VE-Cortex-A9x4 FVP model </i></a> or by running from the command line as described at <a href="./readme.html#cli_run"><i>Running the Distribution From the Command Line</i></a>. Then create a new debug connection for the running model as follows:</div>
+        <ol>
+          <li><div class="para">In the DS-5 Debug perspective <span class="arg">Debug Configurations</span> dialog, create a new launch configuration and name it as e.g. <span class="arg">Debug My Kernel</span>.</div></li>
+          <li>
+<div class="para">Set <span class="arg">Platform</span> to:</div>
+          <ul>
+            <li><div class="para">
+<span class="arg">ARM FVP (Installed with DS-5) &gt; VE_Cortex_A9x1 &gt; Linux Kernel Debug &gt; Debug Cortex-A9</span>, or</div></li>
+            <li><div class="para">
+<span class="arg">ARM FVP (Installed with DS-5) &gt; VE_Cortex_A9x4 &gt; Linux Kernel Debug &gt; Debug Cortex-A9x4 SMP</span>.</div></li>
+          </ul>
+            </li>
+          <li><div class="para">Open the <span class="arg">Files</span> tab and set <span class="arg">Files &gt; Load symbols from file</span> to <span class="arg">kernel/<span class="repl">&lt;version&gt;</span>/built/VE_V7/vmlinux</span>.</div></li>
+          <li><div class="para">Press the <span class="arg">Debug</span> button.</div></li>
+        </ol>
+        <div class="note"><div class="para">
+<div class="bold">Note</div>
+<div>If you press <span class="arg">Debug</span> before the kernel activates the MMU then your debug symbols will not match the kernel image.</div>
+</div></div>
+    </div>
+        
+    <div class="indent">
+        <a name="Connecting%20to%20Serial%20Ports"></a><h2>Connecting to Serial Ports</h2>
+        <div class="para">All of the model's serial ports can be accessed as TCP ports on the host on which the model is running. The model reports each TCP port on which a serial port is listening when it starts up, with output of the following form:</div>
+        <pre class="code">terminal_0: Listening for serial connection on port 5000</pre>
+        <pre class="code">terminal_1: Listening for serial connection on port 5001</pre>
+        <pre class="code">terminal_2: Listening for serial connection on port 5002</pre>
+        <pre class="code">terminal_3: Listening for serial connection on port 5003</pre>
+        <div class="para">Each <span class="arg">terminal_<span class="repl">&lt;n&gt;</span></span> corresponds to serial port <span class="arg">/dev/ttyAMA<span class="repl">&lt;n&gt;</span></span> on the target device.</div>
+        <div class="para">An example case of working with a serial port is connecting to a gdbserver session that is listening on a serial port. If the model reported the following on startup:</div>
+        <pre class="code">terminal_3: Listening for connection on port 5003</pre>
+        <div class="para">and gdbserver has been started on the target as follows:</div>
+        <pre class="code">/usr/bin/gdbserver /dev/ttyAMA3 <span class="repl">&lt;your application&gt;</span></pre>
+        <div class="para">then the following invocation on the host will connect DS-5 Debugger to the gdbserver session:</div>
+        <pre class="code">debugger --interactive --target localhost:5003 --target_os linux</pre>
+    </div>
+
+    <div class="indent">
+        <a name="Working%20with%20Host%20Files%20on%20the%20Target"></a><h2>Working with Host Files on the Target</h2>
+        <div class="para">A host machine path can be mounted on the model by giving the host path as an argument. You can then work with the host files on the target. This is convenient for debugging. For example, you might build an application on your host, and then run gdbserver on the built application in the <span class="arg">host_files</span> directory of your target.</div>
+        <h3>For Fast Models 9.4 and later with Virtio P9 support</h3>
+        <div class="para">A host machine path can be mounted on the model by giving the host path as the argument to <span class="arg">motherboard.virtiop9device.root_path</span>. To do this, create a directory to mount to and then run the <span class="arg">mount</span> command. For example:</div>
+        <pre class="code">mkdir host_dir</pre>
+        <pre class="code">mount -t 9p -o trans=virtio,version=9p2000.L FM /host_dir</pre>
+        <h3>For Fast Models 9.3 and earlier with VMFS support</h3>
+        <div class="para">A host machine path can be mounted on the model by giving the host path as the argument to <span class="arg">motherboard.vfs2.mount</span>. To do this, create a directory to mount to and then run the <span class="arg">mount</span> command. For example:</div>
+        <pre class="code">mkdir host_dir</pre>
+        <pre class="code">mount -t vmfs A /host_dir</pre>
+    </div>
+
+    <div class="indent">
+        <a name="Using%20the%20Example%20Distribution%20to%20work%20with%20your%20own%20Application"></a><h2>Using the Example Distribution to work with your own Application</h2>
+        <div class="para">The example distribution can be used to work with your own applications. However any dependencies of your application must be available on the target system. Provided that you have your own copies of these dependencies you can copy them onto the target system. It is most likely that you will need to do this with shared libraries, and this should work so long as your libraries are EABI-compliant and compatible with the kernel and low-level system libraries (e.g. libc) in the target distribution.</div>
+        <div class="para">It is recommended that you do not attempt to install your own libraries in system areas such as <span class="arg">/lib</span> or <span class="arg">/usr/lib</span>, as this changes the base configuration of the operating system. It is strongly recommended that you do not replace any of the example distribution's libraries with your own versions as this is quite likely to break the example distribution. Instead, you should copy such libraries to a directory on the example distribution and then set the <span class="arg">LD_LIBRARY_PATH</span> environment variable to search this directory for shared library dependencies. For example:</div>
+        <pre class="code">(On host) scp -r <span class="repl">&lt;your root filesystem&gt;</span> root@<span class="repl">&lt;target's IP address&gt;</span>:/root/myrootfs</pre>
+        <pre class="code">(On target) export LD_LIBRARY_PATH=/root/myrootfs</pre>
+        <pre class="code">(On target) gdbserver :5000 /root/myrootfs/<span class="repl">&lt;my application&gt;</span></pre>
+        <div class="para">When building your own applications to run on the example distribution you must use the ARM Linux Distribution Dependencies project and set the compiler option <span class="arg">--sysroot=<span class="repl">&lt;...&gt;</span>/distribution/filesystem/linaro_hf</span> in order to build against the correct headers and libraries. <span class="repl">&lt;...&gt;</span> is the location that the distribution dependencies project has been unzipped to.</div>
+        <div class="para">The ARM Linux Distribution Dependencies project is not included with the other Linux examples, but is provided in the "DS-5 Linux Example Distribution" package that can be downloaded from the Downloads page of <a href="http://ds.arm.com" title="External link"><i>ARM Development Studio 5 (DS-5) Web Site</i></a>.  It can be imported into Eclipse in the same way as the other examples, or it can be unzipped alongside the other examples.</div>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0837-/index.html"><i>Fixed Virtual Platforms FVP Reference Guide</i></a></div></li>
+        <li><div class="para"><a href="http://www.linaro.org" title="External link"><i>Linaro Web Site</i></a></div></li>
+        <li><div class="para"><a href="http://www.kernel.org" title="External link"><i>Linux Kernel Archives</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

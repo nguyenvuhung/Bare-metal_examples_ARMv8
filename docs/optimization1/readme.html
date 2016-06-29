@@ -1,0 +1,266 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ARM Compiler 5 Optimization 1 - Basics</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="ARM%20Compiler%205%20Optimization%201%20-%20Basics"></a><h1>ARM Compiler 5 Optimization 1 - Basics - ARM®DS-5™</h1>
+    
+        <div class="para">This example introduces some basic code size and performance optimization and measurement techniques for application software 
+        using ARM Compiler 5, and is illustrated by a simple bare-metal semihosted "sorts" example application.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example introduces some basic code size and performance optimization and measurement techniques for application software 
+        using ARM Compiler 5, and is illustrated by a simple example bare-metal "sorts" application.
+        It introduces the essential compiler switches required to build your application, so that the compiler can do most of the work of
+        optimizing your application, with no source code changes needed by you.
+        The example demonstrates the use of features of ARM Compiler 5 to measure code and data sizes, and includes the use of the 
+        Performance Monitoring Unit (PMU) on the target for measuring performance.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <ul>
+           <li><div class="para">A BeagleBoard or BeagleBoard-xM and a suitable power supply for it.</div></li>
+           <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to BeagleBoard</div></li>
+           <li><div class="para">A serial terminal emulator such as the Terminal view in DS-5, TeraTerm for Windows (<a href="http://hp.vector.co.jp/authors/VA002416/teraterm.html" title="External link"><i>TeraTerm Website</i></a>) or minicom for Linux, connected via a serial cable to your platform.  This may be needed when running the example on real target hardware, to monitor the Boot Loader and provide a serial terminal interface.  This is not needed if using a software model as that provides its own terminal.  To open the Terminal view in DS-5, select <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Other...</span> to open the Show View dialog box, then expand the <span class="interface">Terminal</span> group and select <span class="interface">Terminal</span>, and click OK.  To configure the terminal settings, click on <span class="interface">Settings</span> in the <span class="interface">Terminal</span> view, then select the required connection type (for example, Serial), then enter the required settings (for example, 38400 baud, 8 bits, no parity, 1 stop bit) and click OK.
+</div></li>
+        </ul>
+
+        <div class="para">This example is intended to be built with ARM Compiler 5. If you wish to modify and rebuild the example, you must use ARM Compiler 5 to rebuild it.</div>
+        <div class="para">The executable builds with a base address 0x80000000, and is intended for running on BeagleBoard - it does not execute correctly on an FVP.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">optimization1-beagle.launch</span> is provided.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Initial%20target%20environment%20assumptions"></a><h2>Initial target environment assumptions</h2>
+        <ol>
+        <li>
+        <div class="para">If your target has a cache, ensure it is enabled.  Example startup code that sets up a cache and MMU for Cortex-A8 on BeagleBoard is provided in <span class="arg">startup.s</span>.  To ensure cache coherency, it is normal to enable the cache after the C run-time region environment setup (scatterloading) has been performed, typically inside <span class="arg">main()</span>.</div>
+        </li>
+
+        <li>
+        <div class="para">When building for v6 or later, ARM Compiler 5 assumes the target supports unaligned accesses with no alignment fault checking, so ensure your target's startup code configures CP15 System Control register c1 to:</div>
+        <ul>
+        <li><div class="para">set U bit 22 to enable unaligned accesses (this is now the default in v7 cores)</div></li>
+        <li><div class="para">clear A bit 1 to disable strict alignment fault checking</div></li>
+        </ul>
+<div class="para">These are normally done together with setting M bit 0 to enable the MMU.  These are shown in the example <span class="arg">startup.s</span>.</div>
+<div class="para">To avoid ARM Compiler 5 generating unaligned accesses from C/C++ code, as a last resort you can compile and assemble with <span class="arg">--no_unaligned_accesses</span>.</div>
+        </li>
+
+        <li>
+        <div class="para">If your application's <span class="arg">main()</span> function cannot be changed (for example, if it is pre-built legacy code, or it is a benchmark program such as Dhrystone that must not be modified), then the ARM linker's <span class="arg">$Sub$$/$Super$$</span> feature can be used to 'patch' an existing <span class="arg">main()</span>.  This feature is illustrated in the accompanying example.  <span class="arg">sorts.c</span> has a <span class="arg">main()</span>, but also <span class="arg">perf.c</span> has a <span class="arg">main()</span>.  <span class="arg">perf.c</span>'s <span class="arg">main()</span> must be executed first to enable the cache, set-up the Performance Counters (see later), and then 'chain' onto the <span class="arg">main()</span> in <span class="arg">sorts.c</span>.</div>
+        </li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Basic%20application%20software%20optimization"></a><h2>Basic application software optimization</h2>
+        <ol>
+
+        <li>
+        <div class="para">Ensure you compile for an appropriate CPU, typically either the specific core on your target, for example, <span class="arg">--cpu=Cortex-A8</span>
+or, if you need to compile code (for example, common library code) to run on a range of different targets, then compile for the lowest common denominator architecture, for example: <span class="arg">--cpu=7-A</span>.</div>
+<div class="para">Note: Be aware that with some <span class="arg">--cpu</span> selections, the presence of an FPU is implicit, and with others it is explicit.  For example, <span class="arg">--cpu=Cortex-A8</span> assumes the presence of NEON/VFP, whereas <span class="arg">--cpu=Cortex-A8.no_neon</span> explicitly specifies its absence.</div>
+        </li>
+
+        <li>
+        <div class="para">Select an appropriate optimization level, one of <span class="arg">-O0</span> (the lowest), <span class="arg">-O1</span> (good for debug), <span class="arg">-O2</span> (the default) or <span class="arg">-O3</span> (most aggressive).  The lower optimization levels are more suitable when debugging, for a better debug illusion.
+As the optimization level is increased, more optimizations are enabled in the compiler, for example auto-inlining is enabled at <span class="arg">-O2</span> and <span class="arg">-O3</span>.</div>
+        </li>
+
+        <li>
+        <div class="para">Decide whether code size or performance is the most important for your application.</div>
+        <ul>
+        <li><div class="para">If code size is more important than performance, compile with <span class="arg">-Ospace</span>.</div></li>
+        <li><div class="para">If performance is more important than code size, compile with <span class="arg">-Otime</span>.</div></li>
+        </ul>
+        </li>
+
+        <li>
+        <div class="para">Decide on whether your code should run in ARM state (compile with <span class="arg">--arm</span>) or Thumb state (compile with <span class="arg">--thumb</span>).  This decision may depend on whether your priority is on code size or performance.  For Cortex-A-series cores, which support Thumb-2, compiling with <span class="arg">--thumb</span> will give the best of both worlds.  <span class="arg">--apcs=/interwork</span> will be needed if mixing ARM and Thumb code on earlier cores.</div>
+        </li>
+
+        <li>
+         <div class="para">To measure the code and data size of your application, ARM Compiler 5 provides various options to give information about the size of your code, for example:</div>
+        <ul>
+        <li><div class="para">
+<span class="arg">armcc --info=totals</span> gives the size contributed by each C/C++ source file</div></li>
+        <li><div class="para">
+<span class="arg">armasm --info=totals</span> gives the size contributed by each assembler file</div></li>
+        <li><div class="para">
+<span class="arg">armlink --info=sizes,totals</span> gives the size contributed by each input object and the image totals</div></li>
+        <li><div class="para">
+<span class="arg">fromelf -z</span> provides a breakdown of the size of an ELF object file or ELF image</div></li>
+        </ul>
+<div class="para">Note: at link time, armlink will remove unused sections automatically.  To see if any sections are removed, use <span class="arg">armlink --info=unused</span>.
+armlink will also compress RW data by default, if sensible to do so.  For information about any compression applied, use <span class="arg">armlink --info=compression</span>.</div>
+        </li>
+
+        <li>
+        <div class="para">Measuring performance involves running your code on a target, either on real hardware or on a software model (such as the FVP models).
+The use of ETM/PTM/ETB to trace instruction execution and measure times can work well, but a straightforward approach that does not require any additional hardware is to use the hardware Performance Counters built into the core.  Boiler-plate code, which you can include in your own applications, is provided in <span class="arg">perf.c</span>.  For ARM Linux applications, use DS-5's Streamline Performance Analyser to show the performance of your application as a part of the whole system environment.</div>
+        </li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example"></a><h2>Building the example</h2>
+        <div class="para">This example can be built with ARM Compiler 5 using the supplied Eclipse project, or directly on the command-line with the supplied <span class="arg">Makefile</span>.</div>
+        <div class="para">The Eclipse project is a managed builder project, that creates a makefile in the /Debug directory.</div>
+        <div class="para">This executable has an application base address 0x80000000, and is intended for running on BeagleBoard - it will not execute correctly on an FVP.</div>
+        
+        <div class="para">This example depends on semihosting support being provided by the debug system.
+DS-5 Debugger enables semihosting automatically if either symbols <span class="arg">__auto_semihosting</span> or <span class="arg">__semihosting_library_function</span> are present in an image.  ARM Compiler 5 and ARM Compiler 6 both add <span class="arg">__semihosting_library_function</span> automatically to an image at link time if that image uses any semihosting-using functions.  If compiling with gcc or an earlier release of armcc, use an alias symbol definition such as <span class="arg">void __auto_semihosting(void) __attribute__ ((alias("main")));</span>
+</div>
+
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\optimization1</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><h2>Running the example</h2>
+        <ol>
+            <li>
+        <div class="para">Power-up the BeagleBoard and let its X-Loader and U-Boot initialize completely, but prevent Linux from booting:</div>
+        <ul>
+        <li><div class="para">For the original BeagleBoard, which has its X-Loader and U-Boot in Flash, and Linux on SD card, to prevent Linux from booting you must
+            either interrupt the boot sequence by hitting a key, or remove the SD card.</div></li>
+        <li><div class="para">For BeagleBoard-xM, which has its X-Loader, U-Boot and Linux on microSD, to prevent Linux from booting you must interrupt the boot
+            sequence by hitting a key.</div></li>
+        </ul>
+        <div class="para">If you have an LCD screen connected, some versions of U-Boot (pre March 2009) will display the BeagleBoard dog splash-screen on it.</div>
+        <div class="para">If you have a serial terminal connected, you can see X-Loader and U-Boot initializing - for example:</div>
+<pre class="code">
+Texas Instruments X-Loader 1.4.2 (Feb 19 2009 - 12:01:24)
+Loading u-boot.bin from nand
+
+
+U-Boot 2009.01-dirty (Feb 19 2009 - 12:22:31)
+
+I2C:   ready
+OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
+OMAP3 Beagle board + LPDDR/NAND
+DRAM:  256 MB
+NAND:  256 MiB
+MUSB: using high speed
+In:    serial
+Out:   serial
+Err:   serial
+Board revision C
+Serial #7158000300000000040323090e00600f
+Hit any key to stop autoboot:  0
+Usage:
+mmcinit - init mmc card
+
+Booting from nand ...
+
+NAND read: device 0 offset 0x280000, size 0x400000
+ 4194304 bytes read: OK
+Wrong Image Format for bootm command
+ERROR: can't get kernel image!
+OMAP3 beagleboard.org #
+</pre>
+            </li>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">optimization1-beagle</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field,
+                or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported:
+                <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The example image will be downloaded to the target and it will
+                run to the <span class="arg">main()</span> function.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">Run the executable (press F8). Text output appears in the <span class="interface">App Console</span> view.</div></li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Exploring%20the%20example"></a><h2>Exploring the example</h2>
+        <div class="para">This example can be used as a test-bed for experimenting with different build options, and seeing their effect on code-size and performance:</div>
+        <ol>
+        <li>
+        <div class="para">Try compiling the example with <span class="arg">-O0</span> then <span class="arg">-O3</span>, and compare the code size and performance of both.
+        Notice that several functions are inlined automatically at <span class="arg">-O3</span>.  To view a disassembly of the code generated, 
+        use <span class="arg">fromelf -s sorts.o</span>, or load the image into DS-5 Debugger.  There is normally no need to explicitly mark functions as
+        <span class="arg">inline</span> because ARM Compiler 5 will automatically inline functions when it is sensible to do so.
+        It is good coding practice to mark functions as <span class="arg">static</span> if they will only be used in the current compilation unit because the compiler
+        then has no need to generate an out-of-line version of the functions, which helps to reduce code size.</div>
+        </li>
+
+        <li>
+        <div class="para">Try compiling the example with <span class="arg">-O3 -Ospace --arm</span> then <span class="arg">-O3 -Ospace --thumb</span>, and notice the improvement in code size 
+        with little impact on performance.  Whilst more instructions might need to be executed in Thumb, more Thumb instructions fit into a given cache.
+        Note that <span class="arg">--arm</span> means mostly-ARM and <span class="arg">--thumb</span> means mostly-Thumb.  At compile time, some code sections might be compiled
+        in the other state, and at link-time, the "best" libraries will be linked-in to match your selected CPU and build options, which may be in the
+        other state.  To view the libraries selected by armlink to link-in, use <span class="arg">--info=libraries</span>.
+        For all-ARM builds, you can compile with <span class="arg">armcc --arm_only</span>, and the linker also has <span class="arg">--thumb2_library</span>, though these are
+        really only intended for academic/benchmarking use, rather than for real-world builds.</div>
+        </li>
+
+        <li>
+        <div class="para">The Performance Counter code in <span class="arg">perf.c</span> counts I-Cache Misses, D-Cache Misses, Instructions Executed and PC Changes.
+        Try modifying this code to count Data Reads <span class="arg">0x06</span> and Data Writes <span class="arg">0x07</span> instead.
+        A full table of possible parameters to measure is given in the TRM for your CPU.</div>
+        </li>
+
+        <li>
+        <div class="para">Branch prediction can play an important part in reducing Cycle Counts.  Branch prediction and the caches are enabled in the <span class="arg">enable_caches()</span> function in <span class="arg">startup.s</span>, that is called from <span class="arg">main()</span>.  Try disabling it to see its effect.</div>
+        </li>
+
+        </ol>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

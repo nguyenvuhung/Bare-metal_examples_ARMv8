@@ -1,0 +1,288 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ARM Compiler 5 Optimization 2 - Additional Techniques</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="ARM%20Compiler%205%20Optimization%202%20-%20Additional%20Techniques"></a><h1>ARM Compiler 5 Optimization 2 - Additional Techniques - ARM®DS-5™</h1>
+    
+        <div class="para">This example introduces some additional optimization techniques for application software using ARM Compiler 5, including multi-file optimization, linker feedback, floating point and NEON auto-vectorization.  It also describes some ways to estimate and reduce Stack and Heap usage.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example introduces some additional optimization techniques for application software using ARM Compiler 5, including multi-file optimization, linker feedback and floating point, and is illustrated by a simple bare-metal, semihosted "test" example application.
+        It also introduces NEON auto-vectorization, and shows how you can make your source code more friendly to the compiler to generate efficient 
+        NEON code.  It also describes some ways to estimate and reduce Stack and Heap usage.  To keep the example clear and simple, the
+        Performance Monitoring Unit (PMU) module introduced in Optimization1 is omitted, but could easily be added if required.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <ul>
+           <li><div class="para">A BeagleBoard or BeagleBoard-xM and a suitable power supply for it.</div></li>
+           <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to BeagleBoard</div></li>
+           <li><div class="para">A serial terminal emulator such as the Terminal view in DS-5, TeraTerm for Windows (<a href="http://hp.vector.co.jp/authors/VA002416/teraterm.html" title="External link"><i>TeraTerm Website</i></a>) or minicom for Linux, connected via a serial cable to your platform.  This may be needed when running the example on real target hardware, to monitor the Boot Loader and provide a serial terminal interface.  This is not needed if using a software model as that provides its own terminal.  To open the Terminal view in DS-5, select <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Other...</span> to open the Show View dialog box, then expand the <span class="interface">Terminal</span> group and select <span class="interface">Terminal</span>, and click OK.  To configure the terminal settings, click on <span class="interface">Settings</span> in the <span class="interface">Terminal</span> view, then select the required connection type (for example, Serial), then enter the required settings (for example, 38400 baud, 8 bits, no parity, 1 stop bit) and click OK.
+</div></li>
+        </ul>
+
+        <div class="para">This example is intended to be built with ARM Compiler 5. If you wish to modify and rebuild the example, you must use ARM Compiler 5 to rebuild it.</div>
+        <div class="para">The executable builds with a base address 0x80000000, and is intended for running on BeagleBoard - it does not execute correctly on an FVP.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">optimization2-beagle.launch</span> is provided.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Further%20optimization%20options%20in%20ARM%20Compiler%205"></a><h2>Further optimization options in ARM Compiler 5</h2>
+        <div class="para">ARM Compiler 5 provides a number of other optimizations mechanisms.  The following is just a small selection of some of the most interesting features.  For a complete list of all switches, please refer to the documentation.</div>
+        <ol>
+        <li>
+        <div class="para">Multi-file compilation allows the compiler to perform additional optimizations across several files that would not normally be possible with just a single file, including: inlining across files; sharing code segments and literal pool data; improved global data accesses (base pointer re-use); cross-file type-checking.  It can also reduce the number of compiler licence checkouts needed, to help speed up build times.  An example command-line looks like:</div>
+<pre class="code">
+armcc -c --multifile file1.c file2.c ... fileN.c
+</pre>
+<div class="para">For more information, please refer to "--multifile" in the <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a>.</div>
+<div class="para">Note: it is not currently possible to make use of <span class="arg">--multifile</span> in an Eclipse project build, as this compiles source files individually.  Use the supplied makefile instead.</div>
+        </li>
+
+        <li>
+        <div class="para">Unused functions can be removed by using linker feedback.  The linker can output a list of unused functions:</div>
+<pre class="code">
+armlink --feedback unused.txt ...
+</pre>
+<div class="para">which the compiler can use as an input for the next build iteration:</div>
+<pre class="code">
+armcc --feedback unused.txt ...
+</pre>
+<div class="para">Each function listed in the feedback file will be recompiled into a separate ELF section on the next build iteration, so that it can be removed by the linker's unused section elimination mechanism.  You must compile and link at least twice.  This is a safe optimization - the function will not be removed if it is found to be used after all.</div>
+<div class="para">For more information, please refer to "About linker feedback" in the <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a>.</div>
+        </li>
+
+        <li>
+        <div class="para">The ARM linker is able to inline small functions.  This feature is enabled by linking with <span class="arg">--inline</span>.  Use <span class="arg">--info=inline</span> to list all functions that are inlined by the linker, and the total number of inlines if --inline is used.</div>
+<div class="para">For more information, please refer to "About link-time code generation" in the <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a>.</div>
+        </li>
+
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Using%20NEON%20and/or%20VFP"></a><h2>Using NEON and/or VFP</h2>
+        <ol>
+
+        <li>
+        <div class="para">If your CPU offers hardware floating point such as VFP or NEON, and you wish to use it, compile with, for example:</div>
+        <ul>
+        <li><div class="para"><span class="arg">--cpu=Cortex-A5.vfp</span></div></li>
+        <li><div class="para"><span class="arg">--cpu=Cortex-A5.neon</span></div></li>
+        <li><div class="para"><span class="arg">--cpu=Cortex-A8</span></div></li>
+        <li><div class="para"><span class="arg">--cpu=Cortex-A9</span></div></li>
+        </ul>
+        <div class="para">Note: VFP or NEON are disabled on reset by default, so to avoid undefined instruction exceptions occurring when executing application code, ensure your target's startup code enables access to VFP or NEON by enabling access to Coprocessors 10 and 11, and then switches on the VFP or NEON hardware by setting the EN bit 30 in the FPEXC register.  These are done in the accompanying example in <span class="arg">startup.s</span>.</div>
+
+        <div class="para">If your CPU does not offer hardware floating point, or you do not wish to use it, compile with, for example:</div>
+        <ul>
+        <li><div class="para"><span class="arg">--cpu=Cortex-A5</span></div></li>
+        <li><div class="para"><span class="arg">--cpu=Cortex-A8.no_neon</span></div></li>
+        <li><div class="para"><span class="arg">--cpu=Cortex-A9.no_neon</span></div></li>
+        <li><div class="para"><span class="arg">--cpu=Cortex-A9.no_neon.no_vfp</span></div></li>
+        </ul>
+        <div class="para">All the above VFP/NEON selections can be overriden with the <span class="arg">--fpu</span> switch, if required.</div>
+        </li>
+
+        <li>
+        <div class="para">To generate NEON vector instructions from C/C++ code (NEON auto-vectorization), the following compiler options must be specified:</div>
+        <ul>
+        <li><div class="para">a target <span class="arg">--cpu</span> with implicit or explicit NEON capability, such as <span class="arg">--cpu=Cortex-A5.neon</span>, <span class="arg">--cpu=Cortex-A8</span> or <span class="arg">--cpu=Cortex-A9</span>
+</div></li>
+        <li><div class="para">
+<span class="arg">--vectorize</span> to enable NEON auto-vectorization</div></li>
+        <li><div class="para">
+<span class="arg">-O2</span> (default) or <span class="arg">-O3</span> optimization level</div></li>
+        <li><div class="para">
+<span class="arg">-Otime</span> to optimize for performance rather than code size</div></li>
+        <li><div class="para">In addition, use <span class="arg">--diag_warning=optimizations</span> to obtain useful diagnostics from the compiler on what it could or could not optimize/vectorize.</div></li>
+        </ul>
+        <div class="para">For example:</div>
+<pre class="code">
+armcc -c --cpu=Cortex-A8 --vectorize -O3 -Otime --diag_warning=optimizations source.c
+</pre>
+        </li>
+
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Estimating%20and%20reducing%20Stack%20and%20Heap%20usage"></a><h2>Estimating and reducing Stack and Heap usage</h2>
+        <div class="para">The Stack and Heap can occupy a significant footprint of RAM in embedded systems.  To manage this RAM usage effectively, it is useful to be able to accurately estimate and minimize the Stack and heap use:</div>
+        <ol>
+        <li>
+        <div class="para">C/C++ code uses the stack intensively. For example, the stack is used to hold:</div>
+        <ul>
+        <li><div class="para">the return address of functions</div></li>
+        <li><div class="para">caller registers that must be preserved to comply with the ARM Architecture Procedure Call Standard (AAPCS)</div></li>
+        <li><div class="para">local variables that get 'spilled' onto the stack, local arrays, structures, unions, and C++ objects.</div></li>
+        </ul>
+        <div class="para">The heap is utilised by <span class="arg">malloc()</span> in C code and <span class="arg">new</span> in C++, and subsequently released with <span class="arg">free()</span> and <span class="arg">delete</span>.  Try to avoid your application "leaking" memory, by ensuring that each malloc/new has a matching free/delete.</div>
+        </li>
+
+        <li>
+        <div class="para">You can estimate your application's stack and heap size requirements using the following methods:</div>
+        <ul>
+        <li><div class="para">For a static estimation, link with <span class="arg">--callgraph</span> to produce a static callgraph.  This shows the size of each function, plus the stack space it consumes, and the worst case overall stack usage from the entry point.  This is a static analysis, and ignores any additional dynamic stack requirements, such as for (possibly nested) interrupt handlers.</div></li>
+        <li><div class="para">For an alternative static estimation, link with <span class="arg">--info=stack</span> or <span class="arg">--info=summarystack</span> to list the stack usage of all global symbols.</div></li>
+        <li><div class="para">For a dynamic estimation, you must run your application on a target.  In your code, first allocate space for the stack/heap that is much larger than you expect to require.  Using a debugger, fill the stack/heap memory with a known value, for example, <span class="arg">0xDEADDEAD</span>, then run your application, or a fixed portion of it.  Aim to use as much of the stack/heap as possible in the test run.  For example, for stack estimation, try to exercise the most deeply nested function calls and the worst case path found by the static analysis.  Try to generate interrupts where appropriate, so that they are included in the stack usage too.  For heap estimation, exercise the paths with the largest <span class="arg">malloc()</span> or <span class="arg">new</span> calls.  After your application has finished executing, examine the stack/heap memory to see how many of the known values (0xDEADDEAD) have been overwritten.  Always use a worst-case run.</div></li>
+        <li><div class="para">For an alternative dynamic estimation, start with a stack/heap region that is slightly undersized, then set a watchpoint at the end of the stack/heap region, run your code as above, and if the watchpoint gets hit, the region size needs increasing.</div></li>
+        <li><div class="para">Another alternative dynamic estimation technique is to use the target's MMU or MPU.  Configure a No Access region just below the stack (or just above the heap).  An overflow at run-time will trigger a data abort.</div></li>
+        <li><div class="para">For ARM Linux applications, use DS-5's Streamline Performance Analyser to reveal stack usage.  The stack usage for each thread and function is shown in the Call Paths and Functions tabs respectively.</div></li>
+        </ul>
+        </li>
+
+        <li>
+        <div class="para">You can help to reduce your application's stack requirements by:</div>
+        <ul>
+        <li><div class="para">writing small functions that only require a small number of variables</div></li>
+        <li><div class="para">minimizing the number of variables that are in use at any given time at each point in a function</div></li>
+        <li><div class="para">avoiding the use of large local structures, arrays or C++ objects - consider allocating them on the heap instead with <span class="arg">malloc()</span>.</div></li>
+        <li><div class="para">using C block scope - this involves declaring variables only where they are required. This minimizes use of the stack by overlapping memory required by distinct scopes.</div></li>
+        <li><div class="para">avoiding recursion.</div></li>
+        </ul>
+        </li>
+
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example"></a><h2>Building the example</h2>
+        <div class="para">This example can be built with ARM Compiler 5 using the supplied Eclipse project, or directly on the command-line with the supplied <span class="arg">Makefile</span>.</div>
+        <div class="para">The Eclipse project is a makefile builder project, rather than a managed builder project, because it is not currently possible to make use of multi-file compilation (<span class="arg">--multifile</span>) in a managed builder project (as it compiles source files individually) and because linker feedback (<span class="arg">--feedback</span>) requires the project to be built at least twice (in this makefile, for convenience, an second compile and link iteration is deliberately done, to save having to invoke <span class="arg">make</span> twice).</div>
+        <div class="para">This executable has an application base address 0x80000000, and is intended for running on BeagleBoard - it will not execute correctly on an FVP.</div>
+        
+        <div class="para">This example depends on semihosting support being provided by the debug system.
+DS-5 Debugger enables semihosting automatically if either symbols <span class="arg">__auto_semihosting</span> or <span class="arg">__semihosting_library_function</span> are present in an image.  ARM Compiler 5 and ARM Compiler 6 both add <span class="arg">__semihosting_library_function</span> automatically to an image at link time if that image uses any semihosting-using functions.  If compiling with gcc or an earlier release of armcc, use an alias symbol definition such as <span class="arg">void __auto_semihosting(void) __attribute__ ((alias("main")));</span>
+</div>
+
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\optimization2</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><h2>Running the example</h2>
+        <ol>
+            <li>
+        <div class="para">Power-up the BeagleBoard and let its X-Loader and U-Boot initialize completely, but prevent Linux from booting:</div>
+        <ul>
+        <li><div class="para">For the original BeagleBoard, which has its X-Loader and U-Boot in Flash, and Linux on SD card, to prevent Linux from booting you must
+            either interrupt the boot sequence by hitting a key, or remove the SD card.</div></li>
+        <li><div class="para">For BeagleBoard-xM, which has its X-Loader, U-Boot and Linux on microSD, to prevent Linux from booting you must interrupt the boot
+            sequence by hitting a key.</div></li>
+        </ul>
+        <div class="para">If you have an LCD screen connected, some versions of U-Boot (pre March 2009) will display the BeagleBoard dog splash-screen on it.</div>
+        <div class="para">If you have a serial terminal connected, you can see X-Loader and U-Boot initializing - for example:</div>
+<pre class="code">
+Texas Instruments X-Loader 1.4.2 (Feb 19 2009 - 12:01:24)
+Loading u-boot.bin from nand
+
+
+U-Boot 2009.01-dirty (Feb 19 2009 - 12:22:31)
+
+I2C:   ready
+OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
+OMAP3 Beagle board + LPDDR/NAND
+DRAM:  256 MB
+NAND:  256 MiB
+MUSB: using high speed
+In:    serial
+Out:   serial
+Err:   serial
+Board revision C
+Serial #7158000300000000040323090e00600f
+Hit any key to stop autoboot:  0
+Usage:
+mmcinit - init mmc card
+
+Booting from nand ...
+
+NAND read: device 0 offset 0x280000, size 0x400000
+ 4194304 bytes read: OK
+Wrong Image Format for bootm command
+ERROR: can't get kernel image!
+OMAP3 beagleboard.org #
+</pre>
+            </li>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">optimization2-beagle</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field,
+                or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported:
+                <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The example image will be downloaded to the target and it will
+                run to the <span class="arg">main()</span> function.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">Run the executable (press F8). Text output appears in the <span class="interface">App Console</span> view.</div></li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Exploring%20the%20example"></a><h2>Exploring the example</h2>
+        <div class="para">This example can be used as a test-bed for experimenting with different build options, and seeing their effect on code-size and performance.
+        This example demonstrates:</div>
+        <ol>
+        <li><div class="para">A function that is unused (<span class="arg">unused_function()</span>) and which can be removed with linker <span class="arg">--feedback</span>.</div></li>
+        <li><div class="para">A function that is inlineable as usual (<span class="arg">inlineable_function1()</span>), and its out-of-line version can be removed with linker <span class="arg">--feedback</span>.</div></li>
+        <li><div class="para">A function in another source file <span class="arg">inlineable_function2()</span> is also inlineable when compiled with <span class="arg">--multifile</span>, and its out-of-line version can be removed with linker <span class="arg">--feedback</span>.</div></li>
+        <li><div class="para">Two functions in different source files (<span class="arg">code_share_function1()</span> and <span class="arg">code_share_function2()</span>) can share the same literal when compiled with <span class="arg">--multifile</span>, and can be inlined, and their out-of-line versions can be removed with linker <span class="arg">--feedback</span>.</div></li>
+        <li><div class="para">A comparison between an unoptimized <span class="arg">add_int_array1()</span> function to add two integer arrays, and an optimized <span class="arg">add_int_array2()</span> function to add two integer arrays, where the arrays do not overlap, and <span class="arg">n</span> is a multiple of four, which is friendly towards NEON auto-vectorization.  The compiler is informed the arrays do not overlap with the <span class="arg">--c99</span> keyword <span class="arg">restrict</span>.</div></li>
+        </ol>
+        <div class="para">Try compiling this example with/without <span class="arg">--multifile</span>, with/without linker <span class="arg">--feedback</span> and with/without <span class="arg">--vectorize</span> to see their effect on code-size and performance.  When using linker <span class="arg">--feedback</span>, remember to build at least twice, and check the content of <span class="arg">feedback.txt</span> to see a list of the unused functions.  Also try using the methods described earlier to measure the example's stack size requirements.</div>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

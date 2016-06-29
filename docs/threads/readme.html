@@ -1,0 +1,412 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Debugging Multi-Threaded ARM Linux Applications</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Debugging%20Multi-Threaded%20ARM%20Linux%20Applications"></a><h1>Debugging Multi-Threaded ARM Linux Applications - ARM®DS-5™</h1>
+    <div class="toc"><div class="indent">
+<b>Table of Contents:</b><ul>
+<li><a href="#Purpose%20and%20scope">Purpose and scope</a></li>
+<li><a href="#Building%20this%20example">Building this example</a></li>
+<li><a href="#Building%20on%20the%20command-line">Building on the command-line</a></li>
+<li><a href="#Building%20with%20Eclipse">Building with Eclipse</a></li>
+<li><a href="#Running%20this%20example%20on%20the%20VE-Cortex-A9x1%20FVP%20model">Running this example on the VE-Cortex-A9x1 FVP model</a></li>
+<li><a href="#Running%20this%20example%20on%20a%20hardware%20target">Running this example on a hardware target</a></li>
+<li><a href="#Loading%20the%20executable%20onto%20the%20target">Loading the executable onto the target</a></li>
+<li><a href="#Running%20the%20threads%20example">Running the threads example</a></li>
+<li><a href="#Debugging%20the%20threads%20application">Debugging the threads application</a></li>
+<li><a href="#Connecting%20to%20an%20already-running%20multi-threaded%20application">Connecting to an already-running multi-threaded application</a></li>
+<li><a href="#Known%20issues%20and%20troubleshooting">Known issues and troubleshooting</a></li>
+</ul>
+</div></div>
+    
+        <div class="para">Threads example to illustrate support for debug of multi-threaded ARM Linux applications.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example illustrates the support for debug of multi-threaded ARM Linux applications in DS-5 Debugger.  This is a simple
+        console-based example that can run on any Linux target supported by DS-5.</div>
+
+        <div class="para">This example's files can be found in the <span class="arg">...\threads</span> directory within <span class="arg">Linux_examples.zip</span>.  Import this .zip archive into Eclipse to access the <span class="arg">threads</span> project.</div>
+
+        <div class="para">The example uses "pthreads" (the Native POSIX Threads Library), that is, it uses the pthread_*() family of functions,
+        and is compiled with "-pthreads".  This example creates some threads with pthread_create(), gives them some work to do
+        (accumulating a float result in a loop), then waits for them to finish with pthread_join().</div>
+        <div class="para">It demonstrates the capabilities of DS-5 Debugger to allow you to:</div>
+        <ul>
+           <li><div class="para">View thread status (in the GUI, and with the "info threads" command)</div></li>
+           <li><div class="para">Set current thread (in the GUI, and with the "thread" command)</div></li>
+           <li><div class="para">Refer to current thread number in commands (with the "$thread" debugger variable)</div></li>
+           <li><div class="para">View the call stack of any thread</div></li>
+           <li><div class="para">View local variables for any thread</div></li>
+           <li><div class="para">Set a breakpoint on a thread</div></li>
+           <li><div class="para">Set a conditional breakpoint on a thread</div></li>
+           <li><div class="para">Connect to an already-running multi-threaded application, then debug it via <span class="arg">gdbserver --attach</span>
+</div></li>
+        </ul>
+        <div class="para">This example is intended to show off features of the debugger, and is not intended to be a tutorial on multi-threading, so thread scheduling, synchronisation, mutexes, signal handling and condition variables are not discussed.</div>
+        <div class="para">Note that when a thread is stopped by the debug system, all threads stop.  When a thread is restarted, all threads restart.  There is no way to selectively start/stop individual threads in isolation from the others.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <div class="para">A host workstation (Linux or Windows) is required to build the example, communicate with the target, and run DS-5 Debugger.</div>
+        <div class="para">The following software may also be needed on the host to run and debug the example:</div>
+        <ul>
+           <li><div class="para">A serial terminal emulator such as the Terminal view in DS-5, TeraTerm for Windows (<a href="http://hp.vector.co.jp/authors/VA002416/teraterm.html" title="External link"><i>TeraTerm Website</i></a>) or minicom for Linux, connected via a serial cable to your platform.  This may be needed when running the example on real target hardware, to monitor the ARM Linux boot process and provide a terminal interface to ARM Linux.  This is not needed if using a software model as that provides its own terminal.  To open the Terminal view in DS-5, select <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Other...</span> to open the Show View dialog box, then expand the <span class="interface">Terminal</span> group and select <span class="interface">Terminal</span>, and click OK.  To configure the terminal settings, click on <span class="interface">Settings</span> in the <span class="interface">Terminal</span> view, then select the required connection type (for example, Serial), then enter the required settings (for example, 38400 baud, 8 bits, no parity, 1 stop bit) and click OK.</div></li>
+           <li><div class="para">A secure copy program such as <span class="arg">scp</span>, needed to allow files to be copied from host to target.
+           Windows versions of this Linux command are available, such as <span class="arg">pscp</span> as provided with <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/" title="External link"><i>PuTTY</i></a>.
+           Alternatively, use DS-5 Debugger Debug Configurations dialog box or Remote System Explorer to transfer files from host to target.</div></li>
+        </ul>
+
+        <h3>Terminology</h3>
+        <div class="para">This document discusses 'host' and 'target' systems. The 'host' system is the Linux or Windows desktop computer that you use for most of your work.
+        The 'target' system is some ARM-based hardware (or model of such hardware) on which the example ARM Linux distribution is running.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20this%20example"></a><h2>Building this example</h2>
+        <div class="para">A pre-built executable is provided for hard-float filesystems.
+        The hard-float executable (<span class="arg">threads</span>, compiled with <span class="arg">-mfloat-abi=hard</span>) is targeted at the hardware floating point ABI, as found in, for example, the Linaro 12.04 and later releases.</div>
+        
+        <div class="para">This example is intended to be built with the GCC cross-compiler for ARM, such as the Linaro GCC toolchain supplied in DS-5.</div>
+
+        <div class="para">This example can be built using the Eclipse (makefile builder) project supplied,
+        or directly on the command-line using the <span class="arg">Makefile</span> supplied with the <span class="arg">make</span> utility.</div>
+        <div class="para">For the best debug view, the compiler's optimization level is set to -O0 in the <span class="arg">Makefile</span>.  You can change this to raise the optimization
+        level to -O1, -O2 or -O3 for higher performance code generation, but at the cost of a worse debug view.</div>
+        <div class="para">The build produces both stripped and unstripped versions of the ELF executable <span class="arg">threads</span>.
+        The unstripped (debug) versions contain debug information for loading into DS-5 Debugger on the host.
+        Smaller stripped (no debug) versions for downloading to the target are created by stripping off the debug information.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+            <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">GCC 4.x [arm-linux-gnueabihf] (DS-5 built-in)</span> from the list</div></li>
+            <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "GCC 4.x [arm-linux-gnueabihf] (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to <span class="arg">...\threads</span>, then type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">Makefile</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20with%20Eclipse"></a><h2>Building with Eclipse</h2>
+
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+
+        <div class="para">The <span class="arg">threads</span> Eclipse (makefile builder) project is used to build the executable <span class="arg">threads</span>.</div>
+    </div>
+
+     <div class="indent">
+        <a name="Running%20this%20example%20on%20the%20VE-Cortex-A9x1%20FVP%20model"></a><h2>Running this example on the VE-Cortex-A9x1 FVP model</h2>
+        <div class="para">Note: this feature is not available in DS-5 Community Edition.</div>
+        <div class="para">This example can be run and debugged on the VE-Cortex-A9x1 FVP model by using
+        <span class="menu">Run<span class="para"> → </span>Debug Configurations</span>, then selecting the
+        <span class="arg">threads-FVP</span> configuration provided under the DS-5 Debugger configuration type.
+        This is pre-configured to launch Linux on the VE-Cortex-A9x1 FVP model, start gdbserver on the target, load the debug information from the debug (unstripped) version of the image into DS-5 Debugger, then start executing <span class="arg">threads</span>, stopping at <span class="arg">main()</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20this%20example%20on%20a%20hardware%20target"></a><h2>Running this example on a hardware target</h2>
+        <div class="para">This example can be run and debugged on a hardware target by using the supplied <span class="arg">threads-gdbserver</span> debug configuration.</div>
+    <ul>
+        <li><div class="para">If you have not done so already, boot ARM Linux on your target and log-in as <span class="arg">root</span>
+</div></li>
+        <li><div class="para">Create a Linux/ssh Remote System Explorer connection for your target</div></li>
+        <li><div class="para">Select <span class="menu">Run<span class="para"> → </span>Debug Configurations</span>, then selecting the
+        <span class="arg">threads-gdbserver</span> under the DS-5 Debugger configuration type, and press <span class="menu">Debug</span>.
+        This is pre-configured to download the stripped <span class="arg">threads</span> executable to the target, start gdbserver on the target, load the debug information from the debug (unstripped) version of the image into DS-5 Debugger, then start executing <span class="arg">threads</span>, stopping at <span class="arg">main()</span>.</div></li>
+    </ul>
+    </div>
+
+    <div class="indent">
+        <a name="Loading%20the%20executable%20onto%20the%20target"></a><h2>Loading the executable onto the target</h2>
+        <div class="para">The example stripped executable, for example <span class="arg">threads</span> must be loaded onto the target, before the example can be run/debugged.
+        To load these files onto the target, you can either:</div>
+    <ul>
+        <li>
+<div class="para">use DS-5 Debugger <span class="interface">Debug Configurations</span> dialog - see
+            <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a> for more information on how to load the image</div>
+        </li>
+        <li><div class="para">use Remote System Explorer to drag and drop these files from the host to target file system, then set execute permissions on the copied executable on the target with Remote System Explorer's <span class="menu">Properties<span class="para"> → </span>Permissions</span> option</div></li>
+        <li>
+<div class="para">perform the manual copy steps as follows:</div>
+            <ol>
+            <li>
+            <div class="para">On the target, obtain the IP address of the target with:</div>
+            <div class="para"><span class="arg">ifconfig</span></div>
+            <div class="para">to give, for example, 10.1.204.172</div>
+            </li>
+    
+            <li>
+            <div class="para">To load the example onto the target, navigate to, for example, the <span class="arg">...\threads\stripped</span> directory, then
+            copy the generated stripped files from the host to your home directory on the target.</div>
+            <div class="para">If logged-in as root, copy to a writable directory in its home directory with, for example, these commands on a Linux host:</div>
+            <div class="para"><span class="arg">scp threads root@10.1.204.172:/writeable</span></div>
+            <div class="para">Windows users might need to use <span class="arg">pscp</span> from PuTTY instead of <span class="arg">scp</span>.</div>
+            </li>
+
+            <li>
+            <div class="para">Set execute permissions on the copied executable on the target with <span class="arg">chmod +x threads</span> on the target console</div>
+            </li>
+            </ol>
+        </li>
+    </ul>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20the%20threads%20example"></a><h2>Running the threads example</h2>
+        <div class="para">Once the example has been loaded to the target, it can be run directly from the target's command-line.</div>
+        <div class="para">First, navigate to the directory on the target where you copied <span class="arg">threads</span>, then execute the following command on the target:</div>
+        <div class="para"><span class="arg">./threads</span></div>
+        <div class="para">The threads application will start running, giving an output on the console similar to</div>
+        <pre class="code">
+Threads example
+===============
+
+This example creates 5 threads with pthread_create(),
+gives them some work to do (accumulating a float result in a loop),
+then waits for them to finish with pthread_join().
+
+Parent process ID getpid()=855
+Thread 0 being created
+Thread 0 running, pthread_self()=1083708560
+Thread 0 started accumulating
+Thread 1 being created
+Thread 1 running, pthread_self()=1092097168
+Thread 1 started accumulating
+Thread 2 being created
+Thread 2 running, pthread_self()=1100485776
+Thread 2 started accumulating
+Thread 3 being created
+Thread 3 running, pthread_self()=1108874384
+Thread 3 started accumulating
+Thread 4 being created
+Thread 4 running, pthread_self()=1117262992
+Thread 4 started accumulating
+All threads now created
+Thread 0 being joined to parent for finishing
+Thread 0 half way through accumulation
+Thread 1 half way through accumulation
+Thread 2 half way through accumulation
+Thread 3 half way through accumulation
+Thread 4 half way through accumulation
+Thread 0 finished accumulating
+Thread 0 exiting
+Thread 1 being joined to parent for finishing
+Thread 1 finished accumulating
+Thread 1 exiting
+Thread 2 being joined to parent for finishing
+Thread 2 finished accumulating
+Thread 2 exiting
+Thread 3 being joined to parent for finishing
+Thread 3 finished accumulating
+Thread 3 exiting
+Thread 4 being joined to parent for finishing
+Thread 4 finished accumulating
+Thread 4 exiting
+
+Accumulation results summary
+Thread 0 result = 1.000000e+06
+Thread 1 result = 1.001001e+06
+Thread 2 result = 1.002002e+06
+Thread 3 result = 1.003003e+06
+Thread 4 result = 1.004004e+06
+Threads example finished
+        </pre>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20the%20threads%20application"></a><h2>Debugging the threads application</h2>
+        <div class="para">Use the supplied <span class="arg">threads-FVP</span> or <span class="arg">threads-gdbserver</span> debug configurations to establish a connection to the VE-Cortex-A9x1 FVP model or a hardware target respectively.  These will also start gdbserver on the target, load the debug information from the debug (unstripped) version of the image into DS-5 Debugger, then start executing <span class="arg">threads</span>, stopping at <span class="arg">main()</span>.</div>
+        <div class="para">You can then view the threads, set (possibly conditional) breakpoints on a thread, view local variables for any thread, view the call stack for any thread, etc, as illustrated in the following example session:</div>
+
+        <ol>
+            <li>
+            <div class="para">At <span class="arg">main()</span>, the <span class="interface">Debug Control</span> view shows the process ID for the current (parent) thread.</div>
+            </li>
+            <li>
+            <div class="para">Local and global variables for <span class="arg">main()</span> can be seen in the <span class="interface">Variables</span> view.
+            In the <span class="interface">Variables</span> view, expand <span class="interface">Locals</span> to reveal the array variable <span class="arg">thread[]</span>.
+            To see Global or File Static variables, you must first add them to the view.  In the <span class="interface">Variables</span> view, enter <span class="arg">thread_app_data</span> into the <span class="interface">Add Variable</span> field, then press enter.  These two arrays will be referred to again later.</div>
+            </li>
+            <li>
+            <div class="para">Starting from <span class="arg">main()</span>, single step (press F6) through the banner printf()s to where the program retrieves then prints its current process ID with <span class="arg">getpid()</span>, near line 42.
+            Notice that this is the same ID as shown in the <span class="interface">Debug Control</span> view.  This is the parent of other threads that will be created shortly.</div>
+            </li>
+            <li>
+            <div class="para">
+<span class="arg">main()</span> will create some threads inside a <span class="arg">for()</span> loop.  Place breakpoints on the call to <span class="arg">pthread_create()</span> on line 57 inside the for loop,
+            on the <span class="arg">printf("All threads now created\n");</span> on line 67 outside the <span class="arg">for()</span> loop, and on the entry to <span class="arg">thread_work()</span> on line 97.
+            Continue running round the loop (click on the green Continue arrow in <span class="interface">Debug Control</span>, or press F8) to create some threads,
+            and watch the new threads appearing in the <span class="interface">Debug Control</span> view.
+            The <span class="interface">Console</span> output will show some printf() messages giving information about threads being created and threads starting to run.</div>
+            </li>
+            <li>
+            <div class="para">As each thread is created, <span class="arg">pthread_create()</span> stores a unique ID for it in the <span class="arg">thread[]</span> array.
+            Expand the <span class="arg">thread[]</span> array to view these IDs.  <span class="arg">pthread_self()</span> is called from within each thread as it starts running,
+            to print the threads ID in the <span class="interface">Console</span>.   Notice that these are the same IDs as shown in the <span class="arg">thread[]</span> array.</div>
+            </li>
+            <li>
+            <div class="para">
+<span class="arg">thread_work()</span> is the starting point for each thread, as specified in the call to <span class="arg">pthread_create()</span>.
+            <span class="arg">thread_work()</span> calls the function <span class="arg">accumulate()</span> to give the threads some work to do (accumulating a float result in a loop).</div>
+            </li>
+            <li>
+            <div class="para">Continue running to the breakpoint on line 67, outside the loop.  All the threads have now been created, and some will have started running.  For a textual description of the state of all the threads, enter <span class="arg">info threads</span> at the <span class="interface">Command</span> prompt.</div>
+            <div class="para">The current thread number is held in the debugger variable <span class="arg">$thread</span>, and this can be printed or used in expressions.
+            For example, enter <span class="arg">print $thread</span> in the <span class="interface">Command</span> prompt.</div>
+            </li>
+            <li>
+            <div class="para">Click on each thread shown in <span class="interface">Debug Control</span> to view its variables in the <span class="interface">Variables</span> view, disassembly in the <span class="interface">Disassembly</span> view, registers in the <span class="interface">Registers</span> view, and call stack in the <span class="interface">Stack</span> view.
+            Some threads may have reached <span class="arg">accumulate()</span> - the call stack will then show <span class="arg">accumulate()</span> was called from <span class="arg">thread_work()</span> that was called from <span class="arg">libpthread.so</span>.
+            A specific thread can also be selected by entering <span class="arg">thread</span> followed by the thread number at the <span class="interface">Command</span> prompt.</div>
+            </li>
+            <li>
+            <div class="para">Thread-specific breakpoints can be set.  As an example, first delete all current breakpoints, then place a breakpoint on <span class="arg">printf("Thread %d half way through accumulation\n", thread);</span> on line 121.
+            Right-mouse-click on this breakpoint in the <span class="interface">Breakpoints</span> view, and select <span class="interface">Properties</span>.
+            Tick "Break on Selected Threads or Cores" and select the highest numbered thread in the list (this is thread #6 if the source has not been modified).  Note that thread selection is not persistent between connections.
+            Continue running (press F8).  When the breakpoint is hit, the value of the loop counter <span class="arg">i</span> will be 502000, indicating that the count is half way through the loop for the selected thread.</div>
+            </li>
+            <li>
+            <div class="para">To create a conditional breakpoint on a thread, place a breakpoint on <span class="arg">accum = accum + step;</span> on line 118.
+            Right-mouse-click on this breakpoint in the <span class="interface">Breakpoints</span> view, and select <span class="interface">Properties</span>.
+            Tick "Break on Selected Threads or Cores" and select the highest numbered thread in the list, then set the "Stop Condition" as, say, <span class="arg">i&gt;502010</span>.
+            Continue running (press F8) and wait for the breakpoint to be hit (this may take some time because the thread stops and gets restarted 10 times).  The loop counter <span class="arg">i</span> should now be 502011.
+            Continue again (press F8), and thread execution will stop again at i=502012.</div>
+            </li>
+            <li>
+            <div class="para">An existing breakpoint can be applied to other threads, with the <span class="arg">break-stop-on-threads</span> command.
+            This is equivalent to changing the Selected Threads in the <span class="interface">Breakpoint Properties</span>.
+            The conditional breakpoint set in the previous step can be applied to other threads.
+            For example, assuming the conditional breakpoint is number 8, this can be applied to threads 3 and 4 by entering
+            <span class="arg">break-stop-on-threads 8 3 4</span> in the <span class="interface">Command</span> prompt.
+            Continue running (press F8) and wait for the breakpoint to be hit.  Execution will stop on either thread 3 or 4.
+            Continue again (press F8) and execution will stop again on either thread 3 or 4.</div>
+            </li>
+            <li>
+            <div class="para">Delete all breakpoints, and continue running until the application terminates normally.</div>
+            </li>
+        </ol>
+
+        <div class="para">See <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1360052608977.html"><i>About debugging multi-threaded applications</i> in <i>DS-5 Debugger User Guide</i></a>
+        for more information.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Connecting%20to%20an%20already-running%20multi-threaded%20application"></a><h2>Connecting to an already-running multi-threaded application</h2>
+        <div class="para">DS-5 Debugger is able to connect to an already-running multi-threaded application.  This threads example is a little too small and simple,
+        but with some small adaptions, can be used to illustrate this feature, as described below:</div>
+    <ul>
+        <li>
+<div class="para">The threads example normally runs to completion very quickly.  To allow time to attach the debugger, add a simple control flag,
+        so that the application can wait for the user to acknowledge connection of DS-5 Debugger.  To do this, first add a global variable flag into <span class="arg">threads.c</span>:</div>
+        <pre class="code">
+volatile int stop=1;  // Enable attaching a debugger
+        </pre>
+<div class="para">then add a while loop near line 55 to watch the flag:</div>
+        <pre class="code">
+thread_app_data[t].step = 1.0f;
+if (t==1) { while (stop==1); }  // Enable attaching a debugger
+printf("Thread %d being created\n", t);
+        </pre>
+        </li>
+        <li>
+<div class="para">Rebuild the threads project, and load the modified <span class="arg">...\stripped\threads</span> executable onto the target.  You may need to set its execute permissions.</div>
+        </li>
+        <li>
+<div class="para">Create a new "Linux Application Debug" Connection to the target, with Debug operation = Connect to already running gdbserver;
+Run control = Connect only; Load symbols from file = <span class="arg">${workspace_loc}/threads/threads</span>.
+        Before attempting to connect DS-5 Debugger, perform the following command-line steps:</div>
+        </li>
+        <li>
+<div class="para">Start the modified <span class="arg">threads</span> executable running on the target:</div>
+        <div class="para"><span class="arg">./threads &amp;</span></div>
+        <div class="para">The threads executable will start executing, then will wait in the while loop.</div>
+        </li>
+        <li>
+<div class="para">Identify the PID of the parent process of threads</div>
+        <div class="para"><span class="arg">ps -ef</span></div>
+        </li>
+        <li>
+<div class="para">Start a gdbserver session on the (hardware) target with</div>
+        <div class="para"><span class="arg">gdbserver --attach :5000 1234 &amp;</span></div>
+        <div class="para">or for the FVP use:</div>
+        <div class="para"><span class="arg">gdbserver --attach /dev/ttyAMA3 1234 &amp;</span></div>
+        <div class="para">where "1234" is the PID of the parent process</div>
+        </li>
+        <li>
+<div class="para">Now connect DS-5 Debugger.  After connection, code execution will stop in the while loop.  You can now set other breakpoints, view variables, view memory, etc.</div>
+            <div class="para">For a textual description of the state of all the threads, enter <span class="arg">info threads</span> at the <span class="interface">Command</span> prompt.</div>
+        </li>
+        <li>
+<div class="para">To restart threads execution, change the <span class="arg">stop</span> variable from 1 to 0, then press Run/Continue (or press F8).
+        </div>
+        </li>
+    </ul>
+    </div>
+
+    <div class="indent">
+        <a name="Known%20issues%20and%20troubleshooting"></a><h2>Known issues and troubleshooting</h2>
+        <ul>
+            <li>
+            <div class="para">The Linux target will report: <span class="arg"># Cannot exec ./threads: Permission denied.</span>
+</div>
+            <div class="para">if you have not set execute permissions on the application.  Use, for example, <span class="arg">chmod +x threads</span>.</div>
+            </li>
+            <li>
+            <div class="para">The Linux target will report: <span class="arg">Connection Failed: Failed to delete file /writable/(app): Permission denied.</span>
+</div>
+            <div class="para">if you don't have permissions to write in the root folder. Modify your Debug Configuration, and set, in <span class="menu">Files</span> Tab, a writeable folder in <span class="interface">Target download directory:</span>.</div> 
+            </li>
+            <li>
+            <div class="para">Breakpoints are not being hit in an application or shared library:</div>
+            <div class="para">Ensure the application and any shared libraries on your target match the ones on the host.
+            The code/data layout must be identical, though the application/shared library on your target does not need to contain debug symbols, i.e. these can be stripped to reduce image size.
+            Try copying the application/shared library across from host to target again.</div>
+            </li>
+
+            
+    <li>
+<div class="para">On Windows 7 and later, launching a debug configuration to connect to a Fixed Virtual Platform (FVP) model may give the following error: <span class="arg">Windows cannot find "C:\Windows\System32\telnet.exe"</span> or <span class="arg">No telnet executable was found on your system</span>.  ARM FVP models make use of "telnet" as a serial terminal, to enable serial data to be transferred from application code running on an ARM FVP via a modelled UART to a serial terminal.  This error occurs when the telnet client is disabled or otherwise unavailable on your computer.  The telnet client is not enabled by default on Windows 7 and later.  To enable the telnet client on your computer:</div>
+        <ol>
+            <li><div class="para">From the Windows Start menu, select Control Panel &gt; Programs and Features</div></li>
+            <li><div class="para">Click on "Turn Windows features on or off"</div></li>
+            <li><div class="para">From the list that appears, select the "Telnet Client" checkbox</div></li>
+            <li><div class="para">Click "OK" to close the dialog.</div></li>
+        </ol>
+    </li>
+
+
+        </ul>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="../hello_linux/readme.html"><i>Example to show how to build a simple Hello World application in C for ARM Linux with gcc</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

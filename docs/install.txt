@@ -1,0 +1,31 @@
+EXAMPLES INSTALLATION INSTRUCTIONS - ARM DS-5
+---------------------------------------------
+Example files are provided in zip files that are located in the 'examples' folder in the DS-5 installation. Other optional examples can be downloaded from the 'Downloads' page of http://ds.arm.com.
+
+USING THE EXAMPLES ON THE COMMAND-LINE
+--------------------------------------
+You must unzip the full content of the zip file to a working area on your computer such as My Documents or your home directory.
+Unzipping only parts of the file can result in examples that do not work, because of missing dependencies.
+It is strongly recommended that you do not unzip the examples under the DS-5 installation root directory as the installation is read only.
+
+NOTE: - 
+Each zip file contains some files and folders in the top level DS-5Examples directory that can be safely overwritten if you unzip multiple examples into the same location.
+
+To build the supplied examples, navigate to the project you want to build and at the command prompt, enter: make
+
+USING THE EXAMPLES IN ECLIPSE
+-----------------------------
+The zip file contains project files that you can import into the workbench. You must import all the project files otherwise you might find some examples do not work because of missing dependencies.
+To automatically import the examples into Eclipse using the cheat sheet:
+1. Start Eclipse
+2. Create a new workspace directory for the examples. There are two ways to do this:
+   a. Create a new workspace directory during the startup of Eclipse
+   b. Select "File -> Switch Workspace -> Other" in Eclipse
+3. Select "Help -> Cheat Sheets..." to open the Cheat Sheet Selection dialog box.
+4. Expand the "ARM -Eclipse for DS-5" group and select "Automatically Importing the DS-5 Example Projects into the Current Workspace."
+5. Click "OK".
+6. Follow the steps in the cheat sheet to import all the DS-5 example projects into your workspace.
+
+
+---------------------------------------------------
+Copyright (C) 2010-2016 ARM Limited. All Rights Reserved.

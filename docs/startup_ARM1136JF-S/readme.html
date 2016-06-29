@@ -1,0 +1,164 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ARM1136JF-S Startup Example Code</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="ARM1136JF-S%20Startup%20Example%20Code"></a><h1>ARM1136JF-S Startup Example Code - ARM®DS-5™</h1>
+    
+        <div class="para">This example shows the bare-metal startup code for the ARM1136JF-S processor, including vector table, exception handlers, MMU, cache initialization, and is illustrated by a simple bare-metal semihosted "sorts" example application.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example shows the bare-metal startup code for the ARM1136JF-S processor, including vector table, exception handlers, MMU, cache initialization.
+        A semihosted "sorts" example is provided in sorts.c for demonstration purposes, that can be replaced by your own application code. 
+        This example can be used as a framework on which to build your own C/C++ applications. </div>
+
+        <h3>Hardware and software requirements</h3>
+        <ul>
+           <li><div class="para">An Icytecture i.MX35 Starter Board and a suitable power supply for it.</div></li>
+           <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to Icytecture i.MX35 Starter Board</div></li>
+        </ul>
+
+        <div class="para">This example is intended to be built with ARM Compiler 5. If you wish to modify and rebuild the example, you must use ARM Compiler 5 to rebuild it.</div>
+        <div class="para">The executable builds with a base address 0x10000010, and is intended for running on Icytecture i.MX35 Starter Board - it does not execute correctly on an FVP.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">startup-ARM1136JF-S</span> is provided.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example"></a><h2>Building the example</h2>
+        <div class="para">This example can be built with ARM Compiler 5 using the supplied Eclipse project, or directly on the command line with the supplied <span class="arg">Makefile</span>.</div>
+        <div class="para">The Eclipse project is a managed builder project, that creates a makefile in the /Debug directory.</div>
+        <div class="para">This executable has an application base address 0x10000010, and is intended for running on Icytecture i.MX35 Starter Board - it will not execute correctly on an FVP.</div>
+        
+        <div class="para">This example depends on semihosting support being provided by the debug system.
+DS-5 Debugger enables semihosting automatically if either symbols <span class="arg">__auto_semihosting</span> or <span class="arg">__semihosting_library_function</span> are present in an image.  ARM Compiler 5 and ARM Compiler 6 both add <span class="arg">__semihosting_library_function</span> automatically to an image at link time if that image uses any semihosting-using functions.  If compiling with gcc or an earlier release of armcc, use an alias symbol definition such as <span class="arg">void __auto_semihosting(void) __attribute__ ((alias("main")));</span>
+</div>
+
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\startup_ARM1136JF-S</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><h2>Running the example</h2>
+        <ol>
+            <li>
+        <div class="para">Power-up the Icytecture i.MX35 Starter Board and let its loader load completely, but prevent Linux or any Operating System from booting:</div>       
+            </li>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">startup-ARM1136JF-S</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field,
+                or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported:
+                <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The example image will be downloaded to the target and it will
+                run to the <span class="arg">Reset_Handler</span> function.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">Run the executable (press F8).  Text output appears in the <span class="interface">App Console</span> view.</div></li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20the%20reset%20handler"></a><h2>Debugging the reset handler</h2>
+        <div class="para">To debug the reset handler, first disconnect any existing debug session, then power-cycle the ARM1136JF-S and let its Loader initialize completely, then load the executable
+(<span class="arg">startup_ARM1136JF-S.axf</span>) in the same way as before, selecting "Debug from entry point" in the <span class="interface">Debugger</span> tab.</div>
+        <div class="para">DS-5 Debugger will download the program's code and data sections to the target, and set the program counter PC to the entry point of the image,
+at the reset entry in the vector table, on the <span class="arg">LDR PC, Reset_Addr</span> instruction at line 78 of <span class="arg">startup.s</span> at address 0x10000010.</div>
+
+        <ol>
+            <li>
+            <div class="para">In the <span class="interface">Registers</span> view, expand <span class="interface">Core</span> to see the core registers.</div>
+            </li>
+            <li>
+            <div class="para">Execute the <span class="arg">LDR PC, Reset_Addr</span> instruction by single-stepping (press F5) into <span class="arg">Reset_Handler</span>.
+      Notice the Program Counter (PC) change in the <span class="interface">Core</span> registers view.</div>
+            </li>
+            <li>
+            <div class="para">The first instructions inside <span class="arg">Reset_Handler</span> (MRC, BIC, MCR) perform a read/modify/write of CP15 Control Register to disable Instruction Cache, Data Cache and MMU.
+      In the <span class="interface">Registers</span> view, expand <span class="interface">CP15</span>, expand <span class="interface">System Control and Configuration</span>, then expand <span class="interface">SCTLR</span>.
+      Single-step (press F5) through these instructions, and see the I, C and M bits being cleared (if they were previously set).</div>
+            </li>
+            <li>
+            <div class="para">The next instructions (MOV, MCR) invalidate the Cache.
+      Single-step (press F5) through these instructions.</div>
+            </li>
+            <li>
+            <div class="para">The next instruction (LDR) initializes the Supervisor mode stack. Expand SVC in <span class="interface">Register</span> view, and see <span class="interface">SP_SVC</span> being initialized.
+      Single-step (press F5) through this instruction.</div>
+            </li>
+            <li>
+            <div class="para">The next following blocks of assembler instructions from lines 125 to 201 perform MMU configuration,
+      page-table generation, and domain control setup which are all executed in privileged SVC mode.  Single-step through the first few of these and watch their effects on the CP15 registers.</div>
+            </li>
+            <li>
+            <div class="para">Set a breakpoint on line 209 <span class="arg">LDR r12,=__main</span> and run to it (press F8).  This prepares for a (possibly long) branch to the
+      C library initialization code at <span class="arg">__main()</span>.  Single-step and observe r12 being loaded.  The next instructions disable the I and D caches, disable strict alignment fault checking, and enable the MMU.
+      Single-step through these instructions and see CP15 System Control register being updated.  The MMU is now enabled and virtual to physical
+      address translations will start occuring.  Finally, the code performs a Branch Exchange (BX) to <span class="arg">__main()</span>.</div>
+            </li>
+            <li>
+            <div class="para">Set a breakpoint on the first instruction in the <span class="arg">core_init()</span> function at line 238, and run to it (press F8).
+      This function called from <span class="arg">main()</span> enables the caches and program flow prediction.
+      Single-step through these instructions and see CP15 System Control register being updated, until <span class="arg">BX lr</span> is reached.
+      Single-step again to return back to the function call in <span class="arg">main()</span> in <span class="arg">sorts.c</span>.</div>
+            </li>
+            <li>
+            <div class="para">Delete all breakpoints, and continue running (press F8) until the application terminates normally.</div>
+            </li>
+        </ol>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

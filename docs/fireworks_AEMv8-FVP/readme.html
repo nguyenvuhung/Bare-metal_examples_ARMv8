@@ -1,0 +1,295 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Fireworks Bare-metal ARMv8 SMP Example for ARM Compiler 6 and the AEMv8 FVP model</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Fireworks%20Bare-metal%20ARMv8%20SMP%20Example%20for%20ARM%20Compiler%206%20and%20the%20AEMv8%20FVP%20model"></a><h1>Fireworks Bare-metal ARMv8 SMP Example for ARM Compiler 6 and the AEMv8 FVP model - ARM®DS-5™</h1>
+    
+        <div class="para">Fireworks example to demonstrate support for building and debugging ARMv8 SMP bare-metal applications with ARM Compiler 6 and DS-5 Debugger.  Note: A 64-bit installation of DS-5 with an Ultimate Edition license are required to make full use of this example.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example demonstrates the support for building and debugging ARMv8 SMP bare-metal applications with ARM Compiler 6 and DS-5 Debugger.
+        Fireworks is a simple bare-metal example written in C and assembler that produces a graphical simulated fireworks display and flying aeroplane banner on the screen.</div>
+        <div class="para">This bare-metal example is specifically targeted at the AEMv8 FVP model, complete with startup code (vector table, reset handler,
+        interrupt handler, cache and MMU configuration, interrupt controller (GICv3) and timer initialization, NEON support), LCD screen driver, retargeted printf() output to a UART, etc.
+        The code is built for AArch64 only and illustrates the DS-5 Debugger support for Exception Level changing.</div>
+
+        <div class="note"><div class="para">
+<div class="bold">Note</div>To rebuild and debug this example, DS-5 with an Ultimate Edition license is required.</div></div>
+        <div class="note"><div class="para">
+<div class="bold">Note</div>A 64-bit installation of DS-5 is required to run this example on the ARMv8 model, because the 32-bit installation does not include an ARMv8 model.</div></div>
+
+        <div class="para">This example is intended to be built with ARM Compiler 6. If you wish to modify and rebuild the example, you must use ARM Compiler 6 to rebuild it, on a 64-bit host platform.</div>
+        <div class="para">The executable builds with a base address 0x80000000, and is intended for running on the AEMv8 FVP model.  This model is only available on 64-bit host platforms, so to run this example on the model, you must have a 64-bit installation.</div>
+        <div class="para">A pre-built executable (<span class="arg">fireworks_AEMv8-FVP.axf</span>) is provided.</div>
+        <div class="para">This example does not depend on any semihosting support being provided by DS-5 Debugger.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">fireworks-FVP_Base_AEMv8A.launch</span> is provided.</div>
+        <div class="para">For a good debug view, the compiler's optimization level is set to -O1 in the <span class="arg">makefile</span>.
+         You can change this to raise the optimization level to -O2 or -O3 for higher performance code generation, but at the cost of a worse debug view.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example"></a><h2>Building the example</h2>
+        <div class="para">This example can be built with ARM Compiler 6 using the supplied Eclipse (makefile builder) project, or directly on the command-line with the supplied <span class="arg">makefile</span> using the <span class="arg">make</span> utility.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+            <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 6 (DS-5 built-in)</span> from the list</div></li>
+            <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 6 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\fireworks_AEMv8-FVP</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+        <div class="para">The makefile compiles the sources as:</div>
+        <div class="para"><span class="arg">armclang -c --target=aarch64-arm-none-eabi -g -O1 -D SMP -D USE_SERIAL_PORT -D STANDALONE</span></div>
+        <div class="para">
+<span class="arg">SMP</span> is used to switch the fireworks application code into SMP mode.  <span class="arg">USE_SERIAL_PORT</span> and <span class="arg">STANDALONE</span> are used to select retargeting (see below).</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><h2>Running the example</h2>
+        <ol>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select <span class="arg">fireworks-FVP_Base_AEMv8A</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The executable image will be downloaded to the target and the program counter set to the entry point at <span class="arg">start64</span> in <span class="arg">startup.s</span>.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">Run the executable (press F8).  A simulated fireworks display will be displayed on the model's LCD screen.</div></li>
+            <li>
+<div class="para">To use DS-5 Debugger Screen view, open the view in the DS-5 Debug perspective with
+        <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Screen</span>, then configure it as:</div>
+<pre class="code">Base Address = 0x80600000
+Screen Width = 800
+Screen Height = 600
+Scan Line Alignment = 1
+Pixel Type = RGB_16_565
+Pixel Byte Order = Little Endian
+</pre>
+        <div class="para">The Screen view will refresh when code execution is stopped.  Higher screen resolutions take longer to refresh the Screen view.</div>
+            </li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20ARMv8%20AArch64%20code%20at%20source-level%20across%20different%20exception%20levels"></a><h2>Debugging ARMv8 AArch64 code at source-level across different exception levels</h2>
+        <div class="para">You can debug ARMv8 AArch64 code at source-level across different exception levels using DS-5 Debugger.</div>
+        <div class="para">DS-5 Debugger supports these address prefixes to represent the virtual memory spaces ("translation regimes") for AArch64:</div>
+        <ul>
+            <li><div class="para">"EL3:"  to represent EL3 (always secure, but can access non-secure memory)</div></li>
+            <li><div class="para">"EL2:"  to represent EL2 (always non-secure)</div></li>
+            <li><div class="para">"EL1S:" to represent Secure EL1/EL0</div></li>
+            <li><div class="para">"EL1N:" to represent Non-secure EL1/EL0</div></li>
+        </ul>
+        <div class="para">This is similar to ARMv7's use of "S:", "N:" and "H:" for Secure, Non-secure and Hypervisor.</div>
+        <div class="para">These prefixes can be used by you:</div>
+        <ul>
+            <li>
+<div class="para">to load symbols associated with a memory space, for example:</div>
+                  <div class="para"><span class="arg">add-symbol-file foo.axf EL1N:0</span></div>
+</li>
+            <li>
+<div class="para">to set breakpoints, for example:</div>
+                  <div class="para"><span class="arg">break EL1N:main</span></div>
+</li>
+            <li>
+<div class="para">to view/modify the content of memory, for example:</div>
+                  <div class="para">enter "<span class="arg">EL1N:0x80000000</span>" in the Memory view, or on the command-line:</div>
+                  <div class="para"><span class="arg">x EL1N:0x80000000</span></div>
+</li>
+        </ul>
+
+        <div class="para">DS-5 Debugger also uses these prefixes when reporting the current memory space where the code stopped, for example:</div>
+        <div class="para"><span class="arg">Execution stopped in EL3h mode at EL3:0x0000000080000000</span></div>
+
+        <div class="para">The prefixes used for AArch32 are the same as for ARMv7 ("S:", "N:" and "H:").</div>
+
+        <div class="para">There is no prefix for EL0 because the same TTBR is used for both EL0 and EL1.  This TTBR points to the Translation Tables for either Secure EL1/EL0 or Non-secure EL1/EL0.   [This is a simplification - there are actually two TTBRs, TTBR0_EL1 and TTBR1_EL1, that may be used for the stage 1 translation of memory accesses at EL0 and EL1, depending on the settings in TCR_EL1].  The consequence of this is that if the core is stopped in e.g. AArch64 EL0 in secure state, the debugger will report:</div>
+        <div class="para"><span class="arg">Execution stopped in EL0t mode at EL1S:0x0000000080000000</span></div>
+        <div class="para">Note that the "EL1S:" here is the memory space.  The exception level here is "EL0t", which is held in the <span class="arg">$AArch64::$System::$PSTATE::$Mode</span> register.</div>
+
+        <div class="para">To debug ARMv8 code across different exception levels with DS-5 Debugger you can, for example, first load the image and symbols at EL3 with:</div>
+        <div class="para"><span class="arg">loadfile yourimage.elf</span></div>
+        <div class="para">then use a command sequence to load the symbols for all other ELs they apply to, for example:</div>
+        <div class="para"><span class="arg">add-symbol-file yourimage.elf EL1N:0</span></div>
+        <div class="para"><span class="arg">add-symbol-file yourimage.elf EL1S:0</span></div>
+
+        <div class="para">In DS-5 Debugger's debug launcher, put the add-symbol-file commands into the Debugger tab "Execute debugger commands" field.</div>
+        <div class="para">If yourimage.elf is already specified in the Debugger's debug launcher Files tab, then there's no need to use a loadfile command too.</div>
+        <div class="para">The ":0" part of the address qualifier is an offset, that allows rebasing of symbols to an offset address.  The offset is often 0, but is not always necessarily so.  For example, for source-level debug of the Linux Kernel before the MMU is enabled you need to calculate the &lt;offset&gt; between the virtual and physical addresses of the code.  For instance if the kernel is linked at virtual address 0xC0008000 and has been loaded at physical address 0x80008000, the offset is (P - V) = (0x80008000 - 0xC0008000) = -0x40000000.  For source-level debug after the MMU is enabled, the offset is usually zero.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20the%20example"></a><h2>Debugging the example</h2>
+        <ol>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select <span class="arg">fireworks-FVP_Base_AEMv8A</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the <span class="interface">Files</span> tab, notice that <span class="interface">Load symbols</span> is ticked.  This loads symbols for the EL3 virtual memory space ("translation regime") that the AEMv8 FVP model starts up in by default.</div></li>
+            <li><div class="para">In the <span class="interface">Debugger</span> tab, select <span class="interface">Debug from entry point</span>.
+            Notice that an <span class="arg">add-symbol-file</span> command is used to load symbols for the EL1N memory space.  The startup code switches the Exception Level from EL3 to EL1N before reaching the <span class="arg">main()</span> function.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The executable image will be downloaded to the target and the PC set to the entry point at <span class="arg">start64()</span> in <span class="arg">startup.s</span>.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">The startup code will be executed by all four processors in the AEMv8 FVP model.  The processors startup in AArch64 by default in the AEMv8 FVP model.  The startup code starts with some common basic initialization, such as setting up the VBARs, configuring Exception Levels EL3, EL2 and EL1, preparing some stack space in EL3 for each processor, and setting up the GIC, before switching from EL3 to EL1N.  You can single-step through this code if you wish (press F6), to see the registers changing.</div></li>
+            <li><div class="para">In the <span class="interface">Registers</span> view, expand <span class="interface">AArch64</span>, then expand <span class="interface">Core</span> to see the core AArch64 registers.</div></li>
+            <li><div class="para">To see the Exception Level switching from EL3 to EL1N, in the <span class="interface">Command</span> field, enter <span class="arg">break EL3:drop_to_el1</span>.  Continue execution (press F8).  Code execution will stop at <span class="arg">drop_to_el1</span> in EL3.  Single-step (press F6) the next instructions, up to and including the <span class="arg">eret</span>.  After executing the <span class="arg">eret</span>, the processor switches from EL3 to EL1N and lands at <span class="arg">el1_entry_aarch64</span>, still in AArch64.</div></li>
+            <li><div class="para">Once in EL1, the code then sets up the application stack for each processor, enables floating point, invalidates the caches and TLBs for all stage 1 translations used at EL1, sets the Translation Table Base address, and sets memory attributes.  You can single-step through this code if you wish (press F6), to see the registers changing, up to the point where code execution forks depending on whether it is executing on the primary processor or a secondary processor.  CPU0 is nominated as the primary processor, the other CPUs are secondary processors.</div></li>
+            <li><div class="para">In the Breakpoints view, delete all breakpoints.</div></li>
+            <li><div class="para">To see effects of the fork, in the <span class="interface">Command</span> field, enter <span class="arg">break EL1N:el1_primary</span> then <span class="arg">break EL1N:el1_secondary</span>.  Continue execution (press F8).  Code execution will stop at <span class="arg">el1_primary</span> or <span class="arg">el1_secondary</span> depending on which processor the code is executing.  Within <span class="arg">el1_secondary</span>, the secondary processors go to sleep until the primary processor wakes them up with an interrupt.  Within <span class="arg">el1_primary</span>, the primary processor completes its initialization, including setting up its MMU, before branching to the C library start-up code at <span class="arg">__main</span>.  <span class="arg">__main</span> initializes the C run-time environment, including scatterloading.  This only needs to be done once, hence is done by the primary processor only.  The primary processor will wake up the secondary processors later, within <span class="arg">main()</span>.  Delete all the existing breakpoints before continuing.</div></li>
+            <li><div class="para">To see the primary processor waking up the secondary processors, in the <span class="interface">Command</span> field, enter <span class="arg">break EL1N:main</span>, then continue execution (press F8).  Code execution will stop at <span class="arg">main()</span>.  In the Debug Control view, select the other cores in turn, to see them all in the Wait For Interrupt (<span class="arg">wfi</span>) loop.  The primary processor wakes the secondary processors by calling <span class="arg">SendSGI</span>.  After waking-up, the secondary processors complete their initialization, including setting up their MMU.  All processors eventually call the <span class="arg">MainApp</span>.</div></li>
+            <li><div class="para">In the <span class="interface">Command</span> field, enter <span class="arg">break EL1N:MainApp</span>, and continue execution (press F8).  Within <span class="arg">MainApp</span>, CPU0 is used to produce a graphical simulated fireworks display, CPU1 is used to move the flying aeroplane banner on the screen, and the other CPUs go back to sleep.</div></li>
+            <li><div class="para">In the Breakpoints view, delete all breakpoints and continue execution (press F8).  A simulated fireworks display will be displayed on the model's LCD screen.</div></li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Viewing%20the%20MMU%20and%20page-table%20configuration"></a><h2>Viewing the MMU and page-table configuration</h2>
+        <div class="para">Load the executable in the same way as before, but this time select "Debug from symbol" <span class="arg">main</span> in the <span class="interface">Debugger</span> tab.</div>
+        <div class="para">DS-5 Debugger will download the program's code and data sections to the target, and run to <span class="arg">main()</span> inside <span class="arg">main.c</span>.  Startup code executed earlier by CPU0 will have already configured the page-tables and enabled the MMU.  To view the MMU and page-table configuration:</div>
+        <ol>
+            <li>
+            <div class="para">Open the <span class="interface">MMU</span> view with <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>MMU</span>.</div>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">MMU</span> view, select the <span class="interface">Memory Map</span> tab.  This gives a top-level view of the virtual memory layout, by combining translation table entries that map to contiguous regions of physical memory with common memory type, cacheability, shareability and access attributes.</div>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">MMU</span> view, select the <span class="interface">Tables</span> tab, then expand <span class="interface">TTBR0</span>.  The lower pane shows TTBR0_EL1 points to page-tables at NP:0x00000000800E0000.  Scroll down through the page-tables to see (non Fault) entries at 0x1C000000, 0x2C000000, 0x80000000.  Notice that for this example, each entry is "flat-mapped" - an input (virtual) address 0x80000000 maps to the same output (physical) address 0x80000000.</div>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">Commands</span> view, enter <span class="arg">mmu print</span>.  This gives a similar output to the above:</div>
+<pre class="code">
+mmu print
+Input Address         | Type           | Next Level            | Output Address        | Properties
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
++ 0x00000000          | TTBR0_EL1      | NP:0x00000000800E0000 |                       | TBI1=0, TBI0=0, AS=0, IPS=4GB, TG1=4KB, SH1=0x0, ORGN1=0x0, IRGN1=0x0, EPD1=1, A1=0, T1SZ=0, TG0=4KB, SH0=0x3, ORGN0=0x1, IRGN0=0x1, EPD0=0, T0SZ=32, ASID=0
+ + 0x00000000         | Level 1 Table  | NP:0x00000000800E3000 |                       | APTable=0x0, UXNTable=0, PXNTable=0
+  - 0x00000000        | Invalid (x224) |                       |                       |
+  - 0x1C000000        | Level 2 Block  |                       | NP:0x000000001C000000 | UXN=0, PXN=0, Contiguous=0, nG=1, AF=1, SH=0x0, AP=0x0, AttrIndx=0x2
+  - 0x1C200000        | Invalid (x127) |                       |                       |
+  - 0x2C000000        | Level 2 Block  |                       | NP:0x000000002C000000 | UXN=0, PXN=0, Contiguous=0, nG=1, AF=1, SH=0x0, AP=0x0, AttrIndx=0x2
+  - 0x2C200000        | Invalid (x159) |                       |                       |
+ - 0x40000000         | Invalid        |                       |                       |
+ + 0x80000000         | Level 1 Table  | NP:0x00000000800E1000 |                       | APTable=0x0, UXNTable=0, PXNTable=0
+  - 0x80000000        | Level 2 Block  |                       | NP:0x0000000080000000 | UXN=0, PXN=0, Contiguous=0, nG=1, AF=1, SH=0x3, AP=0x0, AttrIndx=0x1
+  - 0x80200000        | Level 2 Block  |                       | NP:0x0000000080200000 | UXN=0, PXN=0, Contiguous=0, nG=1, AF=1, SH=0x3, AP=0x0, AttrIndx=0x1
+  - 0x80400000        | Level 2 Block  |                       | NP:0x0000000080400000 | UXN=0, PXN=0, Contiguous=0, nG=1, AF=1, SH=0x3, AP=0x0, AttrIndx=0x1
+  - 0x80600000        | Level 2 Block  |                       | NP:0x0000000080600000 | UXN=0, PXN=0, Contiguous=0, nG=1, AF=1, SH=0x3, AP=0x0, AttrIndx=0x1
+  - 0x80800000        | Invalid (x508) |                       |                       |
+:
+</pre>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">MMU</span> view, select the <span class="interface">Translation</span> tab.  This allows you to see which physical address is mapped to a particular virtual address, and vice-versa.  For example, enter 0x80000000, select <span class="interface">Virtual to Physical</span> then press <span class="interface">Translate</span>.  The lower pane shows the translated address.  For this example, the translated address is 0x80000000 because this example uses "flat-mapping".  Now select <span class="interface">Physical to Virtual</span> then press <span class="interface">Translate</span>.  Again the result is 0x80000000.</div>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">Commands</span> view, enter <span class="arg">mmu translate 0x80000000</span> then press <span class="interface">Submit</span>.  This gives a similar output to the Virtual to Physical address translation above.  To translate Physical to Virtual addresses, enter, for example, <span class="arg">mmu translate NP:0x80000000</span>.</div>
+            </li>
+            <li>
+            <div class="para">Disconnect.</div>
+            </li>
+        </ol>
+    </div>
+    
+    <div class="indent">
+        <a name="Debugging%20the%20interrupt%20handler"></a><h2>Debugging the interrupt handler</h2>
+        <div class="para">To debug the interrupt handler, load the executable in the same way as before, but this time select "Debug from symbol" <span class="arg">main</span> in the <span class="interface">Debugger</span> tab.</div>
+        <div class="para">DS-5 Debugger will download the program's code and data sections to the target, and run to <span class="arg">main()</span> inside <span class="arg">main.c</span>.</div>
+
+        <ol>
+            <li>
+            <div class="para">Set a breakpoint on the <span class="arg">fireworks(id)</span> function and run to it (press F8).</div>
+            </li>
+            <li>
+            <div class="para">Select Core 0 in the <span class="interface">Debug Control</span> view.</div>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">Breakpoints</span> view, click on the <span class="interface">Manage Signals...</span> button, select <span class="interface">Stop</span> and <span class="interface">Print</span> for <span class="interface">EL1_IRQ_SPx_NON-SECURE</span>, then <span class="interface">OK</span>.  This is equivalent to typing <span class="arg">handle EL1_IRQ_SPx_NON-SECURE stop</span> on the CLI.</div>
+            </li>
+            <li>
+            <div class="para">Continue execution by pressing the green run/continue button (press F8).  The fireworks display will start, and the IRQ breakpoint will be hit shortly after, due to the timer interrupt occurring.</div>
+            </li>
+            <li>
+            <div class="para">Restart execution again (press F8).  The LEDs will advance, and the fireworks display run for another short period until the timer interrupt occurs again.</div>
+            </li>
+            <li>
+            <div class="para">Single-step (press F5) through the <span class="arg">IRQ_Handler</span> and observe the APCS-corruptible registers being pushed onto the stack,
+            and step again to see C code being called from assembler, continue stepping until <span class="arg">irqHandler()</span>.</div>
+            </li>
+            <li>
+            <div class="para">
+<span class="arg">irqHandler()</span> clears the timer interrupt  and nudges the LEDs.
+            Step through this C code in <span class="arg">irqHandler()</span>, and back out
+            through the assembler code of <span class="arg">IRQ_Handler</span> that pops the APCS-corruptible registers off the stack,
+            and finally returns from the interrupt.</div>
+            </li>
+            <li>
+            <div class="para">Delete all breakpoints, and continue running (press F8).</div>
+            </li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Known%20issues%20and%20troubleshooting"></a><h2>Known issues and troubleshooting</h2>
+        <ul>
+            
+    <li>
+<div class="para">On Windows 7 and later, launching a debug configuration to connect to a Fixed Virtual Platform (FVP) model may give the following error: <span class="arg">Windows cannot find "C:\Windows\System32\telnet.exe"</span> or <span class="arg">No telnet executable was found on your system</span>.  ARM FVP models make use of "telnet" as a serial terminal, to enable serial data to be transferred from application code running on an ARM FVP via a modelled UART to a serial terminal.  This error occurs when the telnet client is disabled or otherwise unavailable on your computer.  The telnet client is not enabled by default on Windows 7 and later.  To enable the telnet client on your computer:</div>
+        <ol>
+            <li><div class="para">From the Windows Start menu, select Control Panel &gt; Programs and Features</div></li>
+            <li><div class="para">Click on "Turn Windows features on or off"</div></li>
+            <li><div class="para">From the list that appears, select the "Telnet Client" checkbox</div></li>
+            <li><div class="para">Click "OK" to close the dialog.</div></li>
+        </ol>
+    </li>
+
+        </ul>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0837-/index.html"><i>Fixed Virtual Platforms FVP Reference Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0774-/index.html"><i>ARM Compiler 6 armclang Reference Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0801-/index.html"><i>ARM Compiler 6 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0803-/index.html"><i>ARM Compiler 6 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0773-"><i>ARM Compiler 6 Software Development Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0837-/index.html"><i>Fixed Virtual Platforms FVP Reference Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

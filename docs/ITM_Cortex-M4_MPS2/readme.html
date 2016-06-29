@@ -1,0 +1,121 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ITM and Event Viewer Example for Cortex-M4 on MPS2</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="ITM%20and%20Event%20Viewer%20Example%20for%20Cortex-M4%20on%20MPS2"></a><h1>ITM and Event Viewer Example for Cortex-M4 on MPS2 - ARM®DS-5™</h1>
+    
+        <div class="para">This example illustrates the use of ITM in Cortex-M4 on MPS2 and DS-5 Debugger Event Viewer.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example illustrates the use of ITM in Cortex-M4 on MPS2 and DS-5 Debugger Event Viewer.  A simple C example uses two ITM channels to transport text strings, in both raw text and encoded (timestamp) forms.  A ready-made launch configuration <span class="arg">ITM_Cortex-M4_MPS2.launch</span> is provided.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <ul>
+           <li><div class="para">An MPS2 programed for Cortex-M4, and a suitable power supply for it</div></li>
+           <li><div class="para">DSTREAM debug hardware with its power supply, and Mictor cable to connect to the ARM target</div></li>
+        </ul>
+
+        <div class="para">The source code is intended to be built with ARM Compiler 5 and depends on semihosting support being provided by the debug system.  ARM Compiler 5 is provided with DS-5.  DS-5 Debugger will automatically enable semihosting for the image when it is built with ARM Compiler 5.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\ITM_Cortex-M4_MPS2</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><a name="running"></a><h2>Running the example</h2>
+        <ol>
+            <li><div class="para">Connect the DSTREAM to the MPS2 by the Mictor cable.</div></li>
+            <li><div class="para">Power-up the DSTREAM and MPS2.</div></li>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">ITM_Cortex-M4_MPS2</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field, or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported: <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">In its Connections panel, press <span class="interface">DTSL Options Edit...</span>.  In the <span class="interface">Trace Capture</span> tab select <span class="interface">DSTREAM 4GB Trace Buffer</span>, and in the <span class="interface">ITM</span> tab tick <span class="interface">Enable ITM Trace</span>.  Click on <span class="interface">OK</span> to save the DTSL options.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging. Debugging requires the DS-5 Debug perspective. If the <span class="interface">Confirm Perspective Switch</span> dialog box opens, click on <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">The example image will be downloaded to all cores on the target and run to <span class="arg">main()</span>. All open views will be refreshed.</div></li>
+            <li><div class="para">In the <span class="interface">Events</span> view, open the <span class="interface">View Menu</span>, then open the <span class="interface">Event Settings</span>.  Ensure the <span class="interface">Trace Source</span> matches the Trace capture method specified earlier, e.g. <span class="interface">DSTREAM:ITM</span> then press <span class="interface">Reset</span> to select <span class="interface">Binary</span> decoding for all <span class="interface">Ports/Channels 0-255</span>.</div></li>
+            <li>
+<div class="para">Run the executable (press F8). In the <span class="interface">App Console</span> view, you will see output of the form:</div>
+<pre class="code">Hello world from Cortex-M4
+Sent ITM trace events</pre>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">Events</span> view, you will see output of the form:</div>
+            <pre class="code">
+Port  TS  Size  Data
+  1         24  0x204d5449 0x20776172 0x74786574 0x73656d20 0x65676173 0x0000000a
+  2         28  0x80a0827e 0x0000011e 0x5449001a 0x7665204d 0x20746e65 0x6f636e65 0x20646564
+  2          8  0x7373656d 0x0a656761
+            </pre>
+            <div class="para">This shows some data is being successfully transported over some channels.  Only channels 1 and 2 are used in this example: channel 1 is (raw) Text encoded, and channel 2 is "TAE" encoded (Text, Analog, Event), that includes a target-generated timestamp.</div>
+            </li>
+            <li>
+            <div class="para">To view channel 1 decoded correctly, in the <span class="interface">Events</span> view, open the <span class="interface">View Menu</span>, then open the <span class="interface">Event Settings</span>, and select <span class="interface">Text</span> decoding for <span class="interface">Ports/Channel 1</span>.  To view channel 2 decoded correctly, in the <span class="interface">Events</span> view, open the <span class="interface">View Menu</span> and select <span class="interface">New Events View</span>.  In that new view, open the <span class="interface">View Menu</span>, then open the <span class="interface">Event Settings</span>, and select <span class="interface">TAE</span> decoding for <span class="interface">Ports/Channel 2</span>.  Disconnect, reconnect, then run the executable again (press F8), and stop execution after a few seconds (press F9).  In one <span class="interface">Events</span> view, you will see output of the form:</div>
+            <pre class="code">
+Port  TS  Size  Data
+  1         20  ITM raw text message
+            </pre>
+            <div class="para">In the other <span class="interface">Events</span> view, you will see output including a timestamp of the form:</div>
+            <pre class="code">
+Port  TS  Size  Data
+  2  286    25  ITM event encoded message
+            </pre>
+            </li>
+        </ol>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

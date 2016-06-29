@@ -1,0 +1,209 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Cortex-A15 Startup Example Code</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Cortex-A15%20Startup%20Example%20Code"></a><h1>Cortex-A15 Startup Example Code - ARM®DS-5™</h1>
+    
+        <div class="para">This example shows the bare-metal startup code for the Cortex-A15 processor, including vector table, exception handlers, MMU, cache, FPU/NEON initialization, and is illustrated by a simple semihosted "sorts" example application.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example shows the bare-metal startup code for the Cortex-A15 processor, including vector table, exception handlers, MMU, cache, FPU/NEON initialization.
+        A semihosted "sorts" example is provided in sorts.c for demonstration purposes, that can be replaced by your own application code. 
+        This example can be used as a framework on which to build your own C/C++ applications.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <ul>
+           <li><div class="para">A Versatile Express Cortex-A15x2+A7x3 ("TC2") and a suitable power supply for it.</div></li>
+           <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to Versatile Express Cortex-A15x2+A7x3</div></li>
+           <li><div class="para">A serial terminal emulator such as the Terminal view in DS-5, TeraTerm for Windows (<a href="http://hp.vector.co.jp/authors/VA002416/teraterm.html" title="External link"><i>TeraTerm Website</i></a>) or minicom for Linux, connected via a serial cable to your platform.  This may be needed when running the example on real target hardware, to monitor the Boot Loader and provide a serial terminal interface.  This is not needed if using a software model as that provides its own terminal.  To open the Terminal view in DS-5, select <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Other...</span> to open the Show View dialog box, then expand the <span class="interface">Terminal</span> group and select <span class="interface">Terminal</span>, and click OK.  To configure the terminal settings, click on <span class="interface">Settings</span> in the <span class="interface">Terminal</span> view, then select the required connection type (for example, Serial), then enter the required settings (for example, 38400 baud, 8 bits, no parity, 1 stop bit) and click OK.
+</div></li>
+        </ul>
+
+        <div class="para">This example is intended to be built with ARM Compiler 5. If you wish to modify and rebuild the example, you must use ARM Compiler 5 to rebuild it.</div>
+        <div class="para">The executable builds with a base address 0x80000000, and is intended for running on Versatile Express Cortex-A15x2+A7x3 - it does not execute correctly on an FVP.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">startup-Cortex-A15-versatile.launch</span> is provided.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example"></a><h2>Building the example</h2>
+        <div class="para">This example can be built with ARM Compiler 5 using the supplied Eclipse project, or directly on the command line with the supplied <span class="arg">Makefile</span>.</div>
+        <div class="para">The Eclipse project is a managed builder project, that creates a makefile in the /Debug directory.</div>
+        <div class="para">This executable has an application base address 0x80000000, and is intended for running on Versatile Express Cortex-A15x2+A7x3 - it will not execute correctly on an FVP.</div>
+        
+        <div class="para">This example depends on semihosting support being provided by the debug system.
+DS-5 Debugger enables semihosting automatically if either symbols <span class="arg">__auto_semihosting</span> or <span class="arg">__semihosting_library_function</span> are present in an image.  ARM Compiler 5 and ARM Compiler 6 both add <span class="arg">__semihosting_library_function</span> automatically to an image at link time if that image uses any semihosting-using functions.  If compiling with gcc or an earlier release of armcc, use an alias symbol definition such as <span class="arg">void __auto_semihosting(void) __attribute__ ((alias("main")));</span>
+</div>
+
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\startup_Cortex-A15</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><h2>Running the example</h2>
+        <ol>
+            <li><div class="para">Power-up the Versatile Express Cortex-A15x2+A7x3 and let its Loader initialize, but prevent Linux from booting.</div></li>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">startup-Cortex-A15-versatile</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field,
+                or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported:
+                <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The example image will be downloaded to the target and it will
+                run to the <span class="arg">Reset_Handler</span>.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">Run the executable (press F8).  Text output appears in the <span class="interface">App Console</span> view.</div></li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20the%20reset%20handler"></a><h2>Debugging the reset handler</h2>
+        <div class="para">To debug the reset handler, first disconnect any existing debug session, then power-cycle the Versatile Express Cortex-A15x2+A7x3 and let Loader initialize completely, then load the executable
+(<span class="arg">startup_Cortex-A15.axf</span>) in the same way as before, selecting "Debug from entry point" in the <span class="interface">Debugger</span> tab.</div>
+        <div class="para">DS-5 Debugger will download the program's code and data sections to the target, and set the program counter PC to the entry point of the image,
+at the reset entry in the vector table, on the <span class="arg">LDR PC, Reset_Addr</span> instruction at line 42 of <span class="arg">startup.s</span> at address 0x80000000.</div>
+
+        <ol>
+            <li>
+            <div class="para">In the <span class="interface">Registers</span> view, expand <span class="interface">Core</span> to see the core registers.</div>
+            </li>
+            <li>
+            <div class="para">Execute the <span class="arg">LDR PC, Reset_Addr</span> instruction by single-stepping (press F5) into <span class="arg">Reset_Handler</span>.
+      Notice the Program Counter (PC) change in the <span class="interface">Core</span> registers view.</div>
+            </li>
+            <li>
+            <div class="para">The first instructions inside <span class="arg">Reset_Handler</span> (MRC, BIC, MCR) perform a read/modify/write of CP15 Control Register to disable the caches, MMU and branch prediction.
+            In the <span class="interface">Registers</span> view, expand <span class="interface">CP15</span>, then expand <span class="interface">VirtualMemoryControl</span>, then expand <span class="interface">SCTLR</span>.
+            Single-step (press F5) through these instructions, and see the I, C, M and Z bits being cleared (if they were previously set).</div>
+            </li>
+            <li>
+            <div class="para">The next instructions (MRC, BIC, MCR) set the SMP bit to receive instruction cache, BTB, and TLB maintenance operations from other processors.</div>
+            </li>			
+            <li>
+            <div class="para">The next instructions (MOV, MCR) invalidate the Data and Instruction TLBs, and the entire branch predictor array. Single-step (press F5) through these instructions.</div>
+            </li>
+            <li>
+            <div class="para">The next instruction (LDR) initializes the Supervisor mode stack. Expand Core, expand SVC in <span class="interface">Register</span> view, and see <span class="interface">SP_SVC</span> being initialized.
+      Single-step (press F5) through this instruction.</div>
+            </li>
+            <li>
+            <div class="para">The next instructions (LDR, MCR) set the Vector Base Address Register (VBAR) to point to this application's vector table.
+            In the <span class="interface">Registers</span> view, inside the expanded <span class="interface">CP15</span>, expand <span class="interface">SecurityExtensions</span>.
+            Single-step (press F5) through these instructions, and see the <span class="interface">VBAR</span> being set to 0x80000000.</div>
+            </li>
+            <li>
+            <div class="para">The next blocks of assembler instructions, which are executed in privileged SVC mode, perform cache invalidation, MMU configuration,
+      page-table generation (the page-table configuration will be studied in the next section), and if enabled, switch on the VFP and NEON hardware.
+      Single-step through the first few of these and watch their effects on the CP15 registers.</div>
+            </li>
+            <li>
+            <div class="para">Set a breakpoint on line 320 <span class="arg">LDR r12,=__main</span> and run to it (press F8).  This prepares for a (possibly long) branch to the
+      C library initialization code at <span class="arg">__main()</span>.  Single-step and observe r12 being loaded.  The next instructions enable the MMU.
+      Single-step through these instructions and see CP15 System Control register being updated.  The MMU is now enabled and virtual to physical address translations will start occuring.  Finally, the code performs a Branch Exchange (BX) to <span class="arg">__main()</span>.</div>
+            </li>
+            <li>
+            <div class="para">Set a breakpoint on the first instruction in the <span class="arg">enable_caches()</span> function at line 357, and run to it (press F8).  This function called from <span class="arg">main()</span> enables the caches and branch prediction.  Single-step through these instructions and see CP15 System Control register being updated, until <span class="arg">BX lr</span> is reached.  Single-step again to return back to the function call in <span class="arg">main()</span> in <span class="arg">sorts.c</span>.</div>
+            </li>
+            <li>
+            <div class="para">Delete all breakpoints, and continue running (press F8) until the application terminates normally.</div>
+            </li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Viewing%20the%20MMU%20and%20page-table%20configuration"></a><h2>Viewing the MMU and page-table configuration</h2>
+        <div class="para">Load the executable in the same way as before, but this time select "Debug from symbol" <span class="arg">main</span> in the <span class="interface">Debugger</span> tab.</div>
+        <div class="para">DS-5 Debugger will download the program's code and data sections to the target, and run to <span class="arg">main()</span> inside <span class="arg">main.c</span>.  Startup code executed earlier by CPU0 will have already configured the page-tables and enabled the MMU.  To view the MMU and page-table configuration:</div>
+        <ol>
+            <li>
+            <div class="para">Open the <span class="interface">MMU</span> view with <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>MMU</span>.</div>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">MMU</span> view, select the <span class="interface">Memory Map</span> tab.  This gives a top-level view of the virtual memory layout, by combining translation table entries that map to contiguous regions of physical memory with common memory type, cacheability, shareability and access attributes.</div>
+            </li>            
+            <li>
+            <div class="para">In the <span class="interface">MMU</span> view, select the <span class="interface">Tables</span> tab, then expand <span class="interface">TTBR0</span>.  The lower pane shows TTBR0 points to page-tables at SP:0x80100000.  Notice that for this example, each entry is "flat-mapped" - an input (virtual) address 0x80000000 maps to the same output (physical) address 0x80000000.  Also in this example, the entire memory map is configured as 'strongly-ordered' memory, except for the 1MB section based at 0x80000000 that is setup specially as cacheable 'normal' memory for executable application code.</div>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">Commands</span> view, enter <span class="arg">mmu print</span>.  This gives a similar output to the above:</div>
+<pre class="code">
+mmu print
+Input Address | Type    | Next Level      | Output Address  | Properties
+--------------------------------------------------------------------------------------------------------------------------------
++ 0x00000000  | TTBR0   | SP:0x0080100000 |                 | EAE=0, PD1=0, PD0=0, N=0, IRGN=0x0, NOS=0, RGN=0x0, S=0
+ - 0x00000000 | Section |                 | SP:0x0000000000 | NS=0, nG=0, S=0, AP=0x3, TEX=0x0, Domain=15, XN=1, C=0, B=0, PXN=0
+ - 0x00100000 | Section |                 | SP:0x0000100000 | NS=0, nG=0, S=0, AP=0x3, TEX=0x0, Domain=15, XN=1, C=0, B=0, PXN=0
+ - 0x00200000 | Section |                 | SP:0x0000200000 | NS=0, nG=0, S=0, AP=0x3, TEX=0x0, Domain=15, XN=1, C=0, B=0, PXN=0
+ - 0x00300000 | Section |                 | SP:0x0000300000 | NS=0, nG=0, S=0, AP=0x3, TEX=0x0, Domain=15, XN=1, C=0, B=0, PXN=0
+:
+</pre>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">MMU</span> view, select the <span class="interface">Translation</span> tab.  This allows you to see which physical address is mapped to a particular virtual address, and vice-versa.  For example, enter 0x80000000, select <span class="interface">Virtual to Physical</span> then press <span class="interface">Translate</span>.  The lower pane shows the translated address.  For this example, the translated address is 0x80000000 because this example uses "flat-mapping".  Now select <span class="interface">Physical to Virtual</span> then press <span class="interface">Translate</span>.  Again the result is 0x80000000.</div>
+            </li>
+            <li>
+            <div class="para">In the <span class="interface">Commands</span> view, enter <span class="arg">mmu translate 0x80000000</span> then press <span class="interface">Submit</span>.  This gives a similar output to the Virtual to Physical address translation above.  To translate Physical to Virtual addresses, enter, for example, <span class="arg">mmu translate SP:0x80000000</span>.</div>
+            </li>
+            <li>
+            <div class="para">Disconnect.</div>
+            </li>
+        </ol>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0837-/index.html"><i>Fixed Virtual Platforms FVP Reference Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

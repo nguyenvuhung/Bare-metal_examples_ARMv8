@@ -1,0 +1,299 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ARM Compiler 5 Optimization 3 - NEON auto-vectorization of bare-metal Fireworks example</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="ARM%20Compiler%205%20Optimization%203%20-%20NEON%20auto-vectorization%20of%20bare-metal%20Fireworks%20example"></a><h1>ARM Compiler 5 Optimization 3 - NEON auto-vectorization of bare-metal Fireworks example - ARM®DS-5™</h1>
+    
+        <div class="para">This example demonstrates NEON auto-vectorization of the bare-metal Fireworks example using ARM Compiler 5, and shows ways of modifying parts of the source code to take better advantage of NEON auto-vectorization, and ways of measuring the performance gains of NEON auto-vectorization.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example demonstrates NEON auto-vectorization of the bare-metal Fireworks example using ARM Compiler 5, and shows ways of modifying parts of the source code to take better advantage of NEON auto-vectorization, and ways of measuring the performance gains of NEON auto-vectorization.  This example can be used as a test-bed for experimenting with different build options and seeing their effect on code-size and performance.  This example is derived from the beagle_fireworks example.</div>
+        <h3>Hardware and software requirements</h3>
+        <ul>
+        <li><div class="para">A BeagleBoard or BeagleBoard-xM and a suitable power supply for it.</div></li>
+        <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to BeagleBoard</div></li>
+        <li><div class="para">Optionally, a standard computer LCD screen, connected via a DVI-D cable to BeagleBoard.
+        The fireworks display can alternatively be viewed in the DS-5 Debugger Screen view.</div></li>
+        <li><div class="para">A serial terminal emulator such as the Terminal view in DS-5, TeraTerm for Windows (<a href="http://hp.vector.co.jp/authors/VA002416/teraterm.html" title="External link"><i>TeraTerm Website</i></a>) or minicom for Linux, connected via a serial cable to your platform.  This may be needed when running the example on real target hardware, to monitor the Boot Loader and provide a serial terminal interface.  This is not needed if using a software model as that provides its own terminal.  To open the Terminal view in DS-5, select <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Other...</span> to open the Show View dialog box, then expand the <span class="interface">Terminal</span> group and select <span class="interface">Terminal</span>, and click OK.  To configure the terminal settings, click on <span class="interface">Settings</span> in the <span class="interface">Terminal</span> view, then select the required connection type (for example, Serial), then enter the required settings (for example, 38400 baud, 8 bits, no parity, 1 stop bit) and click OK.
+
+        Furthermore, any use of the printf() function in the application is output via the UART on the same serial connection.</div></li>
+        </ul>
+
+        <div class="para">This example is intended to be built with ARM Compiler 5. If you wish to modify and rebuild the example, you must use ARM Compiler 5 to rebuild it.</div>
+        <div class="para">The executable builds with a base address 0x80000000, and is intended for running on BeagleBoard - it does not execute correctly on an FVP.</div>
+
+        <div class="para">This example does not depend on any semihosting support being provided by DS-5 Debugger.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">optimization3-neon-fireworks-beagle.launch</span> is provided.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example"></a><h2>Building the example</h2>
+        <div class="para">This example can be built with ARM Compiler 5 using the supplied Eclipse project, or directly on the command line with the supplied <span class="arg">Makefile</span>.
+        This executable has an application base address 0x80000000, and is intended for running on BeagleBoard - it will not execute correctly on an FVP.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\beagle_fireworks</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+        <div class="para">The makefile compiles the sources as:</div>
+        <div class="para"><span class="arg">armcc --thumb --cpu=Cortex-A8 -O3 -Otime --vectorize --diag_warning=optimizations --debug -DSTANDALONE</span></div>
+        <div class="para">
+<span class="arg">-DSTANDALONE</span> is used to select retargeting (see below).</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><h2>Running the example</h2>
+        <ol>
+            <li>
+        <div class="para">Power-up the BeagleBoard and let its X-Loader and U-Boot initialize completely, but prevent Linux from booting:</div>
+        <ul>
+        <li><div class="para">For the original BeagleBoard, which has its X-Loader and U-Boot in Flash, and Linux on SD card, to prevent Linux from booting you must
+            either interrupt the boot sequence by hitting a key, or remove the SD card.</div></li>
+        <li><div class="para">For BeagleBoard-xM, which has its X-Loader, U-Boot and Linux on microSD, to prevent Linux from booting you must interrupt the boot
+            sequence by hitting a key.</div></li>
+        </ul>
+        <div class="para">If you have an LCD screen connected, some versions of U-Boot (pre March 2009) will display the BeagleBoard dog splash-screen on it.</div>
+        <div class="para">If you have a serial terminal connected, you can see X-Loader and U-Boot initializing - for example:</div>
+<pre class="code">
+Texas Instruments X-Loader 1.4.2 (Feb 19 2009 - 12:01:24)
+Loading u-boot.bin from nand
+
+
+U-Boot 2009.01-dirty (Feb 19 2009 - 12:22:31)
+
+I2C:   ready
+OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
+OMAP3 Beagle board + LPDDR/NAND
+DRAM:  256 MB
+NAND:  256 MiB
+MUSB: using high speed
+In:    serial
+Out:   serial
+Err:   serial
+Board revision C
+Serial #7158000300000000040323090e00600f
+Hit any key to stop autoboot:  0
+Usage:
+mmcinit - init mmc card
+
+Booting from nand ...
+
+NAND read: device 0 offset 0x280000, size 0x400000
+ 4194304 bytes read: OK
+Wrong Image Format for bootm command
+ERROR: can't get kernel image!
+OMAP3 beagleboard.org #
+</pre>
+            </li>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">optimization3-neon-fireworks-beagle</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field,
+                or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported:
+                <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The executable (<span class="arg">optimization3-neon-fireworks-beagle.axf</span>) will be downloaded to the target and it will
+                run to the <span class="arg">main()</span> function.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">Run the executable (press F8).  A simulated fireworks display will be displayed on the attached LCD screen, and printf() output appears in the serial terminal.</div></li>
+            <li>
+<div class="para">To use DS-5 Debugger Screen view, open the view in the DS-5 Debug perspective with
+        <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Screen</span>, then configure it as:</div>
+<pre class="code">Base Address = 0x80500000
+Screen Width = 800
+Screen Height = 600
+Scan Line Alignment = 1
+Pixel Type = RGB_16_565
+Pixel Byte Order = Little Endian
+</pre>
+        <div class="para">The Screen view will refresh when code execution is stopped.  Higher screen resolutions take longer to refresh the Screen view.</div>
+            </li>
+        </ol>
+    </div>
+
+
+    <div class="indent">
+        <a name="Exploring%20the%20example"></a><h2>Exploring the example</h2>
+        <div class="para">This example can be used as a test-bed for experimenting with different build options, and seeing their effect on code-size and performance.
+This example is derived from the beagle_fireworks example, with some source code changes, the main differences being:</div>
+        <ul>
+        <li><div class="para">The 3x3 pixel plotting and scrolling DS-5 banner at the top of the screen have been disabled, so they do not interfere with cycle counting.</div></li>
+        <li><div class="para">The timer in timer_interrupts.c now generates an interrupt every millisecond, so can be used for simple timing purposes.  The LEDs are nudged approx every second, to show the target is operational.</div></li>
+        <li><div class="para">NEON needs to access all the data of a structure to be able to vectorize a loop that includes the structure.  Therefore the original <span class="arg">Sparks</span> structure has been split into three, and the enum split into separate <span class="arg">Shells</span> and <span class="arg">Sparks</span>.  Each spark type now has its own declaration.  This is done to be able to treat all of them independently while creating them or moving them.</div></li>
+        <li><div class="para">Some functions such as <span class="arg">moveSpark()</span> have been re-arranged and simplified to allow auto-vectorization.  Others, such as <span class="arg">newBurst()</span> have had their critical inner loops split into two - the first loop calculates the spark data including calls to random() that would otherwise prevent auto-vectorization, the second loop is auto-vectorized optimally because the loop count is a multiple of four.</div></li>
+        <li><div class="para">The <span class="arg">moveSpark()</span> and <span class="arg">displaySpark()</span> take pointer to structure parameters that are marked with the keyword <span class="arg">__restrict</span> to inform the compiler that the structures do not overlap, to be friendly towards NEON auto-vectorization.</div></li>
+        </ul>
+
+        <div class="para">The following sections demonstrate:</div>
+        <ol>
+        <li><div class="para">Compiling with/without NEON auto-vectorization.</div></li>
+        <li><div class="para">Measuring NEON performance improvements inside a critical loop</div></li>
+        <li><div class="para">Investigating the display performance bottleneck</div></li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Compiling%20with/without%20NEON%20auto-vectorization"></a><h2>Compiling with/without NEON auto-vectorization</h2>
+        <div class="para">To generate NEON vector instructions from C/C++ code (NEON auto-vectorization), the following compiler options must be specified:</div>
+        <ul>
+        <li><div class="para">a target <span class="arg">--cpu</span> with implicit or explicit NEON capability, such as <span class="arg">--cpu=Cortex-A5.neon</span>, <span class="arg">--cpu=Cortex-A8</span> or <span class="arg">--cpu=Cortex-A9</span>
+</div></li>
+        <li><div class="para">
+<span class="arg">--vectorize</span> to enable NEON auto-vectorization</div></li>
+        <li><div class="para">
+<span class="arg">-O2</span> (default) or <span class="arg">-O3</span> optimization level</div></li>
+        <li><div class="para">
+<span class="arg">-Otime</span> to optimize for performance rather than code size</div></li>
+        <li><div class="para">
+<span class="arg">--diag_warning=optimizations</span> reports useful diagnostics from the compiler on what it could or could not optimize/vectorize.</div></li>
+        </ul>
+        <div class="para">The makefile in this example compiles the sources as:</div>
+<pre class="code">
+armcc --cpu=Cortex-A8 -O3 -Otime --vectorize source.c
+</pre>
+    <div class="para">This generates highly optimized code at the expense of a degraded debug view.  The debug view can be improved, so that functions are more clearly distinguished for setting breakpoints, at the cost of slightly worse performance, by disabling autoinlining with <span class="arg">--no_autoinline</span>.</div>
+    <div class="para">To get useful diagnostics from the compiler about what it could or could not optimize/vectorize, add the <span class="arg">--diag_warning=optimizations</span> switch, so that it reports, for example:</div>
+<pre class="code">
+"src/fireworks.c", line 253: Warning:  #1679-D: Optimization: Loop vectorized (i)
+"src/fireworks.c", line 331: Warning:  #1801-D: Optimization: Function expanded (random)
+"src/fireworks.c", line 337: Warning:  #1801-D: Optimization: Function expanded (random)
+"src/fireworks.c", line 349: Warning:  #1679-D: Optimization: Loop vectorized (i)
+"src/fireworks.c", line 403: Warning:  #1801-D: Optimization: Function expanded (random)
+"src/fireworks.c", line 404: Warning:  #1801-D: Optimization: Function expanded (random)
+"src/fireworks.c", line 405: Warning:  #1801-D: Optimization: Function expanded (random)
+"src/fireworks.c", line 406: Warning:  #1801-D: Optimization: Function expanded (random)
+"src/fireworks.c", line 421: Warning:  #1679-D: Optimization: Loop vectorized (i)
+"src/fireworks.c", line 452: Warning:  #1801-D: Optimization: Function expanded (random)
+"src/fireworks.c", line 453: Warning:  #1801-D: Optimization: Function expanded (random)
+"src/fireworks.c", line 463: Warning:  #1679-D: Optimization: Loop vectorized (i)
+"src/fireworks.c", line 494: Warning:  #1596-D: Could not optimize: Function reference prevents high-level loop optimization
+"src/fireworks.c", line 551: Warning:  #1596-D: Could not optimize: Function reference prevents high-level loop optimization
+"src/fireworks.c", line 600: Warning:  #1596-D: Could not optimize: Function reference prevents high-level loop optimization
+"src/fireworks.c", line 674: Warning:  #1596-D: Could not optimize: Function reference prevents high-level loop optimization
+"src/fireworks.c", line 687: Warning:  #1847-D: Could not optimize: Use of pointer variable ( )
+"src/fireworks.c", line 688: Warning:  #2091-D: Optimization: Loop unrolled (i; by 2)
+</pre>
+    <div class="para">The effect of disabling NEON auto-vectorization can be seen by removing the <span class="arg"> --vectorize</span> switch.</div>
+    </div>
+
+
+    <div class="indent">
+        <a name="Measuring%20NEON%20performance%20improvements%20inside%20a%20critical%20loop"></a><h2>Measuring NEON performance improvements inside a critical loop</h2>
+        <div class="para">The <span class="arg">moveSpark()</span> function is a critical loop within the fireworks program.  It is used to calculate the next position of every spark.  As there can be several thousand sparks alive at any moment, it is important that this calculation loop is performed efficiently.  Add the following code to the start of <span class="arg">moveSpark()</span>:</div>
+<pre class="code">
+   	if (loopCount &gt;= 0x1000)
+   	{
+   		start_perfmon();
+    :
+</pre>
+        <div class="para">And add the following code to the end of <span class="arg">moveSpark()</span>:</div>
+<pre class="code">
+    :
+   	stop_perfmon();
+   	}
+</pre>
+        <div class="para">This code uses the performance monitors to measure the number of Instructions Executed and Cycle Count (CCNT) taken to calculate the next positions of a fairly large (&gt;= 0x1000) number of sparks.  When compiling with NEON auto-vectorization, ARM Compiler 5 can compile the <span class="arg">moveSpark()</span> function to take advantage of NEON, so that calculations can be performed on 4 sparks in parallel at a time.  For example, for 0x1100 sparks, only 0x440 iterations of the loop are required.  You can use the Registers view to watch the loop counter in a register counting down from 0x440 to zero.</div>
+        <div class="para">This reduction in the number of loops helps to speed up the overall calculation.  Typical results with NEON auto-vectorization as displayed on the serial terminal are:</div>
+<pre class="code">
+Instructions Executed = 33797
+Cycle Count (CCNT) = 142382
+</pre>
+    <div class="para">Now repeat the same measurement without NEON auto-vectorization.  Remove <span class="arg">--vectorize</span> from the <span class="arg">DEFINES</span> line in the <span class="arg">makefile</span>, recompile and run the code again.  Typical results without NEON auto-vectorization as displayed on the serial terminal are:</div>
+<pre class="code">
+Instructions Executed = 126235
+Cycle Count (CCNT) = 194133
+</pre>
+    <div class="para">Revert the changes to the source code and makefile before moving onto the next step.</div>
+    </div>
+
+
+    <div class="indent">
+        <a name="Investigating%20the%20display%20performance%20bottleneck"></a><h2>Investigating the display performance bottleneck</h2>
+        <div class="para">The calculations needed to create and move the Shells and Sparks in this example can be performed very quickly - most of the time to execute fireworks is taken by writing pixels to the display buffer in the <span class="arg">plot()</span> function.  To measure by how much the display is the performance bottleneck, try timing 10000 <span class="arg">drawSparks()</span> loops using the millisecond timer, using this code in the <span class="arg">fireworks()</span> function:</div>
+<pre class="code">
+    while (1)
+    {
+        tick_count=0; // Reset millisecond timer
+        for (i = 0; i &lt; 10000; i++)
+        {
+            drawSparks();
+        }
+        printf("Time (millisecs) = %u\n", tick_count );
+    }
+</pre>
+    <div class="para">Recompile, and run the code.  After some time, you will see on the serial terminal timings like:</div>
+<pre class="code">
+:
+Time (millisecs) = 14308
+Time (millisecs) = 14029
+Time (millisecs) = 13982
+Time (millisecs) = 13690
+:
+</pre>
+
+<div class="para">This shows 10000 <span class="arg">drawSparks()</span> loops takes about 14 seconds on average.  These timings were for a BeagleBoard.  BeagleBoard-xM timings might be better.  If you do not have a serial terminal connected, set a breakpoint outside the <span class="arg">for()</span> loop, and view the global variable <span class="arg">tick_count</span>.</div>
+    <div class="para">Now replace the content of the <span class="arg">plot()</span> function with a <span class="arg">__nop()</span>:</div>
+<pre class="code">
+static void plot(int x, int y, int color)
+{
+	__nop();
+//	((volatile unsigned short *)FRAME_BUFFER)[y * LCD_WIDTH + x] = color;
+}
+</pre>
+    <div class="para">
+<span class="arg">__nop()</span> is an ARM Compiler intrinsic that compiles to a NOP instruction.  The compiler does not optimize away the NOP instructions (except for normal unreachable code elimination), so this ensures the <span class="arg">plot()</span> function is retained and not optimized away.  The <span class="arg">__nop()</span> intrinsic also acts as an instruction scheduling barrier, that ensures instructions are not moved from one side of the NOP to the other as a result of optimization.</div>
+    <div class="para">Recompile, and run the code again.  No fireworks will appear on the display anymore because nothing is being written to it.  The 10000 <span class="arg">drawSparks()</span> loops now take about 3 seconds on average.  This demonstrates that about 20% of the time is being used to perform the calculations, and about 80% to write to the display.  Again, these timings were for a BeagleBoard.  BeagleBoard-xM timings might be better.</div>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

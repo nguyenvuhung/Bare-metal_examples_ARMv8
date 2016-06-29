@@ -1,0 +1,56 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>DTSL Jython Show Registers Example</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="DTSL%20Jython%20Show%20Registers%20Example"></a><h1>DTSL Jython Show Registers Example - ARM®DS-5™</h1>
+    <div class="toc"><div class="indent">
+<b>Table of Contents:</b><ul>
+<li><a href="#Purpose%20and%20scope">Purpose and scope</a></li>
+<li><a href="#Getting%20Started%20with%20the%20DTSL%20Examples">Getting Started with the DTSL Examples</a></li>
+</ul>
+</div></div>
+
+    
+        <div class="para">This example stand alone DTSL program will connect to a platform and show you the set of available registers for one device within the platform.  What makes this example slightly more interesting than it first appears, is that because the example is simple it can attach to many platform types - including a models connection.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">The Debug and Trace Services Layer (DTSL) is a software layer that sits between DS-5 Debugger and the RDDI target access API.  DS-5 Debugger uses DTSL to create target connections, configure the target platform to be ready for debug operations, and communicate with the debug components on the target.</div>
+        <div class="para">As a power user of DS-5 Debugger, you might need to use DTSL as part of new platform support, to extend the capabilities of DS-5 Debugger, to add support for custom debug components, or to create your own Java or Jython programs which interact with your target.  These examples illustrate these uses.</div>
+    </div>
+
+    
+    <div class="indent">
+      <a name="Getting%20Started%20with%20the%20DTSL%20Examples"></a><h2>Getting Started with the DTSL Examples</h2>
+      <div class="para">The DTSL examples are provided in <span class="arg">[DS-5 install dir]\examples\DTSL_examples.zip</span>.  To access these, either import the examples into the DS-5 Eclipse workspace, or unzip them to a suitable location.</div>
+      <div class="para">Some additional files are provided in the <span class="arg">[DS-5 install dir]\sw\DTSL</span> folder.  To use the examples you must either import the DTSL library <span class="arg"><span class="bold">DTSL.zip</span></span> from this folder into the DS-5 Eclipse workspace, or unzip it to a suitable location.  This folder also contains the DTSL Java docs converted into a PDF document <span class="arg">DTSLJavaDocs.pdf</span> and the zipped up content of the DTSL Javadocs <span class="arg">com.arm.debug.dtsl.docs.zip</span>.</div>
+      <div class="para">If you use the Cheat Sheet to "Automatically import the DS-5 Example Projects into the current workspace", both the DTSL examples <span class="arg">[DS-5 install dir]\examples\DTSL_examples.zip</span> and the DTSL library <span class="arg">[DS-5 install dir]\sw\DTSL\DTSL.zip</span> will be imported automatically for you into the DS-5 Eclipse workspace.</div>
+      <div class="para">See the <span class="arg"><span class="bold">readme.txt</span></span> text files within each sub-directory for further information.</div>
+    </div>
+
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Debugging Kernel Modules</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Debugging%20Kernel%20Modules"></a><h1>Debugging Kernel Modules - ARM®DS-5™</h1>
+    <div class="toc"><div class="indent">
+<b>Table of Contents:</b><ul>
+<li><a href="#Purpose%20and%20scope">Purpose and scope</a></li>
+<li><a href="#Building%20this%20example">Building this example</a></li>
+<li><a href="#Building%20on%20the%20command-line">Building on the command-line</a></li>
+<li><a href="#Building%20with%20Eclipse">Building with Eclipse</a></li>
+<li><a href="#Building%20the%20example%20against%20your%20own%20kernel">Building the example against your own kernel</a></li>
+<li><a href="#Booting%20ARM%20Linux%20on%20the%20target">Booting ARM Linux on the target</a></li>
+<li><a href="#Loading%20the%20kernel%20module%20onto%20the%20target">Loading the kernel module onto the target</a></li>
+<li><a href="#Using%20the%20kernel%20module">Using the kernel module</a></li>
+<li><a href="#Debugging%20the%20kernel%20module">Debugging the kernel module</a></li>
+<li><a href="#Debugging%20a%20user-space%20application%20and%20kernel%20module%20together">Debugging a user-space application and kernel module together</a></li>
+<li><a href="#Known%20issues%20and%20troubleshooting">Known issues and troubleshooting</a></li>
+</ul>
+</div></div>
+    
+        <div class="para">A simple character device driver to illustrate the support for debug of Linux kernel modules.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example illustrates the support for debug of Linux kernel modules in DS-5 Debugger.  This kernel module example is a simple character device driver, that can be built against a Linux kernel on a Linux host workstation, and then run/debugged on a Linux target supported by DS-5 (either a real hardware target, or a model such as VE-Cortex-A9x1 FVP model).</div>
+        <div class="para">This example is intended to demonstrate features of the debugger, and is not intended to be a tutorial on Linux kernel modules.</div>
+
+        <div class="para">This example's files can be found in the <span class="arg">...\kernel_module</span> directory within <span class="arg">Linux_examples.zip</span>.  Import this .zip archive into Eclipse to access the <span class="arg">kernel_module</span> project.</div>
+
+        <h3>Terminology</h3>
+        <div class="para">This document refers to 'host' and 'target' systems. The 'host' system is the Linux or Windows desktop computer that you use for most
+        of your work. The 'target' system is some ARM-based hardware (or model of such hardware) on which the example ARM Linux distribution is running.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <div class="para">A Linux host workstation is required to build this example, with a native GCC.
+        The native GCC is required to build the kernel 'scripts' (actually C programs) that are part of the kernel build process.
+        Pre-built images are provided for Windows users.</div>
+
+        <h3>Requirements for target hardware</h3>
+        <div class="para">This example can be run/debugged on a software model or real target hardware.  To run/debug it on your own real target hardware platform, the following will be needed:</div>
+        <ul>
+            <li><div class="para">Your platform and a suitable power supply for it.</div></li>
+            <li><div class="para">ARM Linux installed on your platform, that you can boot and log-in to.</div></li>
+            <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to your platform.</div></li>
+            <li><div class="para">A serial terminal emulator such as the Terminal view in DS-5, TeraTerm for Windows (<a href="http://hp.vector.co.jp/authors/VA002416/teraterm.html" title="External link"><i>TeraTerm Website</i></a>) or minicom for Linux, connected via a serial cable to your platform.  This may be needed when running the example on real target hardware, to monitor the ARM Linux boot process and provide a terminal interface to ARM Linux.  This is not needed if using a software model as that provides its own terminal.  To open the Terminal view in DS-5, select <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Other...</span> to open the Show View dialog box, then expand the <span class="interface">Terminal</span> group and select <span class="interface">Terminal</span>, and click OK.  To configure the terminal settings, click on <span class="interface">Settings</span> in the <span class="interface">Terminal</span> view, then select the required connection type (for example, Serial), then enter the required settings (for example, 38400 baud, 8 bits, no parity, 1 stop bit) and click OK.</div></li>
+        </ul>
+
+    </div>
+
+    <div class="indent">
+        <a name="Building%20this%20example"></a><h2>Building this example</h2>
+        
+        <div class="para">This example is intended to be built with the GCC cross-compiler for ARM, such as the Linaro GCC toolchain supplied in DS-5.</div>
+
+        <div class="para">This example can be built on Linux platforms using the <span class="arg">Makefile</span> supplied, either with the <span class="arg">kernel_module</span> Eclipse
+        (makefile builder) project supplied, or directly on the command-line with the <span class="arg">make</span> utility.
+        Pre-built images are provided for Windows users.</div>
+        <div class="para">To build this example, you must have imported into Eclipse the "DS-5 Linux Example Distribution" package that can be downloaded from the Downloads page of <a href="http://ds.arm.com" title="External link"><i>ARM Development Studio 5 (DS-5) Web Site</i></a>.  This provides the example Linux <span class="arg">distribution</span> project/directory needed to build the module against the Linux kernel.  The <span class="arg">distribution</span> project does not need to be built (actually, it cannot be built).</div>
+        <div class="para">The <span class="arg">Makefile</span> supplied will first initialize the kernel trees (including rebuilding the kernel,
+        which may take some time), then build the kernel module against the kernel, then strip away the unneeded symbols
+        from the kernel module, and finally build a simple user-space main.c calling application too.</div>
+        <div class="para">For a good debug view, the compiler's optimization level for building the user-space <span class="arg">main()</span> is set to -O0 in the
+        <span class="arg">Makefile</span>.  You can change this to raise the optimization level to -O2 or -O3 for higher performance code generation,
+        but at the cost of a worse debug view.</div>
+        <div class="para">Alternatively, to debug this example, use the pre-built executables provided instead of re-building them.
+Pre-built executables for the FVP models are provided. It is still necessary to import the "DS-5 Linux Example Distribution" package as this provides the debug symbols required for kernel-aware debug.
+The pre-built kernel module <span class="arg">/FVP_VE_V7/modex.ko</span> was built against the FVP_VE_V7 example kernel, so is intended to be run on the FVP_VE_V7 example kernel on the VE-Cortex-A9x1 FVP model.</div>
+        <div class="para">Building the example produces both stripped and unstripped versions of the ELF kernel module <span class="arg">modex.ko</span> and user-space <span class="arg">main</span> application.
+        The unstripped (debug) versions contains debug information for loading into DS-5 Debugger on the host.
+        The smaller stripped (no debug) versions for downloading to the target are created by stripping off the unneeded debug information.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build on the Linux host command-line with the supplied <span class="arg">make</span> utility,
+        navigate to <span class="arg">.../kernel_module</span>, then type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">all</span> and <span class="arg">clean</span> are provided in the <span class="arg">Makefile</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20with%20Eclipse"></a><h2>Building with Eclipse</h2>
+
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+
+        <div class="para">The <span class="arg">kernel_module</span> Eclipse (makefile builder) project is used to build the kernel module <span class="arg">modex.ko</span> and user-space <span class="arg">main</span> application.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example%20against%20your%20own%20kernel"></a><h2>Building the example against your own kernel</h2>
+        <div class="para">The <span class="arg">Makefile</span> supplied builds the kernel module against the example Linux kernel supplied with DS-5.  If you have your own
+        (different) kernel, you can use <span class="arg">Makefile_generickernel</span> to build against your own kernel trees. This Makefile should be invoked as:</div>
+        <pre class="code">make -f Makefile_generickernel KERNEL_SOURCE_DIR=<span class="repl">&lt;...&gt;</span></pre>
+        <div class="para">where <span class="arg"><span class="repl">&lt;...&gt;</span></span> is the location of your kernel source tree.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Booting%20ARM%20Linux%20on%20the%20target"></a><a name="booting"></a><h2>Booting ARM Linux on the target</h2>
+        <div class="para">If you have not done so already, boot ARM Linux on your target and log-in as <span class="arg">root</span>:</div>
+        <div class="para">To boot ARM Linux on the VE-Cortex-A9x1 FVP model, first establish a debug connection from DS-5 Debugger to the VE-Cortex-A9x1 FVP model using <span class="menu">Run<span class="para"> → </span>Debug Configurations</span>, select the <span class="arg">kernel-mainapp-FVP-VE-A9x1</span> configuration provided, and press <span class="interface">Debug</span>.  DS-5 Debugger automatically boots ARM Linux if required.  Then disconnect DS-5 Debugger from the target, <span class="bold">but leave the FVP model running.</span>
+</div>
+    </div>
+
+    <div class="indent">
+        <a name="Loading%20the%20kernel%20module%20onto%20the%20target"></a><h2>Loading the kernel module onto the target</h2>
+    <div class="note"><div class="para">
+<div class="bold">Note</div>
+<div>This section only needs to be done for a hardware target, not FVP models, because on FVP models the kernel module file is mapped into the kernel's filing system with VFS.</div>
+</div></div>
+    <div class="para">Before it can be run/debugged, the stripped kernel module for your platform <span class="arg">.../kernel_module/your_platform/stripped/modex.ko</span> must be copied from the host to the target, by either:</div>
+    <ul>
+        <li><div class="para">using Remote System Explorer to drag and drop these files from the host to target file system</div></li>
+        <li>
+<div class="para">performing the manual copy steps as follows:</div>
+            <ol>
+            <li>
+            <div class="para">On the target, obtain the IP address of the target with:</div>
+            <div class="para"><span class="arg">ifconfig</span></div>
+            <div class="para">to give, for example, 10.1.204.172</div>
+            </li>
+    
+            <li>
+            <div class="para">To load the example onto the target, navigate to the <span class="arg">.../kernel_module/your_platform/stripped</span> directory on the host, then
+            copy <span class="arg">modex.ko</span> to your home directory on the target.</div>
+            <div class="para">If logged-in as root, copy to a writable directory in its home directory with, for example, these commands on a Linux host:</div>
+            <div class="para"><span class="arg">scp modex.ko root@10.1.204.172:/writeable</span></div>
+            </li>
+            </ol>
+        </li>
+    </ul>
+    </div>
+
+    <div class="indent">
+        <a name="Using%20the%20kernel%20module"></a><h2>Using the kernel module</h2>
+        <div class="para">Using the (hardware or FVP model) target's console, navigate to the directory on the target where <span class="arg">modex.ko</span> is located, then execute the following commands on the target:</div>
+    <ol>
+        <li>
+<div class="para">Install the module:</div>
+        <pre class="code">insmod modex.ko</pre>
+</li>
+        <li>
+<div class="para">See that it has been registered as device number 42 with:</div>
+        <pre class="code">grep 42 /proc/devices</pre>
+</li>
+        <li>
+<div class="para">See that the module is active with:</div>
+        <pre class="code">cat /proc/modules</pre>
+</li>
+        <li>
+<div class="para">Verify the device node <span class="arg">/dev/modex</span> has been created with:</div>
+        <pre class="code">ls -al /dev/m*</pre>
+</li>
+        <li>
+<div class="para">Display information about all loaded modules:</div>
+        <pre class="code">lsmod</pre>
+</li>
+        <li>
+<div class="para">Read from the module with:</div>
+        <pre class="code">cat /dev/modex</pre>
+</li>
+        <li>
+<div class="para">Send the module a byte of data with, for example:</div>
+        <pre class="code">echo -ne "\001" &gt; /dev/modex</pre>
+        <div class="para">The module can be put into a "test mode" by sending it the character '+'.  In this test mode, the character 'A' triggers an abort, and 'P' triggers a kernel panic().  Test mode is exited by sending the module the character '-'.</div>
+</li>
+        <li>
+<div class="para">Uninstall the module:</div>
+        <pre class="code">rmmod modex</pre>
+</li>
+        </ol>
+        <div class="para">The user-space <span class="arg">main</span> application, built from <span class="arg">main.c</span>, can be used to read/write modex, similar to steps 6 and 7 above.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20the%20kernel%20module"></a><h2>Debugging the kernel module</h2>
+        <div class="para">To debug the kernel module with DS-5 Debugger, you must have imported into Eclipse the "DS-5 Linux Example Distribution" package that can be downloaded from the Downloads page of <a href="http://ds.arm.com" title="External link"><i>ARM Development Studio 5 (DS-5) Web Site</i></a>.</div>
+        <div class="para">First establish a debug connection from DS-5 Debugger to the target using
+        <span class="menu">Run<span class="para"> → </span>Debug Configurations</span>, then selecting the
+        <span class="arg">kernel-module-FVP-VE-A9x1</span> configuration provided.  These establish a kernel module debug connection to the running ARM Linux target.</div>
+        <div class="para">If connecting to real hardware then enter the USB: or TCP: IP address or name of your DSTREAM unit in the <span class="interface">Debug Hardware Address</span> field of the <span class="interface">Connections</span> panel. Otherwise an error will be reported: <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div>
+
+        <div class="para">The debug configurations select:</div>
+        <ul>
+        <li><div class="para">The target Platform, Project type, and Debug Operation</div></li>
+        <li><div class="para">The <span class="arg">vmlinux</span> file from which to load kernel debug symbols</div></li>
+        <li><div class="para">The debug (unstripped) version of <span class="arg">modex.ko</span> from which to load kernel module debug symbols</div></li>
+        <li><div class="para">Connect-only (rather than "Debug from entry point" or "Debug from main").</div></li>
+        </ul>
+
+        <div class="para">For <span class="arg">kernel-module-FVP-VE-A9x1</span>, kernel debug symbols are loaded for secure state with, for example, <span class="arg">add-symbol-file vmlinux S:0</span> because the kernel is running in secure state.  Kernel module debug symbols loading must not carry the S:0 argument.</div>
+
+        <div class="para">After establishing a debug connection, you can debug the kernel module at source level in the usual way, as illustrated in the following example session.</div>
+        <ol>
+            <li>
+            <div class="para">Stop the target, if it is not already stopped.  The kernel on the target will then become unresponsive.</div>
+            </li>
+            <li>
+            <div class="para">The module initialization function <span class="arg">modex_init()</span> is called when the module is inserted.
+            To trap this, set a breakpoint on this function by either typing <span class="arg">break -p modex_init</span> at the DS-5 Debugger command-line,
+            or opening the source file <span class="arg">modex.c</span> and double-clicking on line 115.
+            As <span class="arg">modex.ko</span> has not yet been installed, and the debug symbols for it not yet loaded, DS-5 Debugger sets a "pending breakpoint".
+            Restart the target by pressing F8. The kernel becomes responsive again.</div>
+            </li>
+            <li>
+            <div class="para">If necessary, log into the target system as user <span class="arg">root</span>, with no password.</div>
+            <div class="para">Insert the module by navigating on the target to the directory where the module is installed (e.g. <span class="arg">cd /writeable/kernel_module/FVP_VE_V7/stripped</span>) and typing:</div>
+            <pre class="code">insmod modex.ko</pre>
+            <div class="para">Target execution stops at the function <span class="arg">modex_init()</span>.
+            You can now view variables, view memory, view disassembly, single-step, etc. in DS-5 Debugger</div>
+            </li>
+            <li>
+            <div class="para">You can view information about the loaded module by either typing <span class="arg">info os-modules</span> at the DS-5 Debugger command-line,
+            or opening the Modules view in the DS-5 Debug perspective with <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Modules</span>.</div>
+            </li>
+            <li>
+            <div class="para">Set more breakpoints, on <span class="arg">modex_read()</span>, <span class="arg">modex_write()</span>, and <span class="arg">modex_exit()</span>. Restart the target by pressing F8.</div>
+            </li>
+            <li>
+<div class="para">Read from the module with:</div>
+            <pre class="code">cat /dev/modex</pre>
+            <div class="para">Target execution stops at the function <span class="arg">modex_read()</span>.  Restart the target by pressing F8.</div>
+            <div class="para">The kernel calls <span class="arg">modex_read()</span> twice, so target execution will stop again. Restart the target once more by pressing F8.</div>
+            </li>
+            <li>
+<div class="para">Send the module a byte of data with, for example:</div>
+            <pre class="code">echo -ne "\001" &gt; /dev/modex</pre>
+            <div class="para">Target execution stops at the function <span class="arg">modex_write()</span>.  Restart the target by pressing F8.</div>
+            </li>
+            <li>
+<div class="para">Remove the module:</div>
+            <pre class="code">rmmod modex</pre>
+            <div class="para">Target execution stops at the function <span class="arg">modex_exit()</span>.  Restart the target by pressing F8.</div>
+            </li>
+            <li>
+            <div class="para">Disconnect the debug connection.</div>
+            </li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20a%20user-space%20application%20and%20kernel%20module%20together"></a><h2>Debugging a user-space application and kernel module together</h2>
+        <div class="para">It is also possible to debug a user-space application and kernel module together.
+        The following example shows stopping an application at a breakpoint in user-space just before it makes a call into a kernel module,
+        then stopping again at a breakpoint inside the kernel module, then stopping again after returning to the application.
+        This requires two debug connections: a kernel/module debug connection to the kernel module; and a gdbserver debug connection to the application.
+        Beware that the target processor is stopped when a kernel/module breakpoint is hit, so gdbserver will become unresponsive until the target is
+        restarted.</div>
+        <ol>
+            <li>
+            <div class="para">For real hardware targets, an RSE connection is required for some of the following steps.
+            If you do not have one already then define a Linux/ssh RSE connection to your target in Eclipse.</div>
+            </li>
+            <li>
+            <div class="para">Ensure the stripped kernel module <span class="arg">.../kernel_module/your_platform/stripped/modex.ko</span> has been copied to the <span class="arg">/writeable</span> directory
+            on the target.  The (stripped) user-space application <span class="arg">main</span> will get copied as part of the gdbserver debug connection shortly.</div>
+            </li>
+            <li>
+            <div class="para">Establish a kernel/module debug connection to the kernel module in the same way as before using the
+            <span class="arg">kernel-module-FVP-VE-A9x1</span> configuration provided.  Do not stop the target yet.</div>
+            </li>
+            <li>
+            <div class="para">Establish a gdbserver debug connection to the application using the <span class="arg">kernel-mainapp-*</span> configuration suitable for your target.</div>
+            </li>
+            <li>
+            <div class="para">Ensure the mainapp debug context is selected in Debug Control.  It should show "stopped".
+            Set a breakpoint in <span class="arg">main.c</span> at line 39 on the call to read from modex,
+            and at line 40 on the printf to display the value read from modex.</div>
+            </li>
+            <li>
+            <div class="para">If necessary, log into the target system as user <span class="arg">root</span>, with no password.</div>
+            <div class="para">Insert the module by navigating on the target to the directory where the module is installed (e.g. <span class="arg">cd /writeable/kernel_module/FVP_VE_V7/stripped</span>) and typing:</div>
+            <pre class="code">insmod modex.ko</pre>
+            <div class="para">DS-5 Debugger detects this and loads the debug symbols for <span class="arg">modex.ko</span>.</div>
+            </li>
+            <li>
+            <div class="para">Select the module debug context in Debug Control.  It should show "running".  Stop the target.
+            Set a breakpoint on the modex read function by either typing <span class="arg">break modex_read</span> at the DS-5 Debugger command-line,
+            or opening the source file <span class="arg">modex.c</span> and double-clicking on line 59.  Restart the target.</div>
+            </li>
+            <li>
+            <div class="para">Select the mainapp debug context in Debug Control.  It should show "stopped".  Start the mainapp running.
+            It will start running, then stop at the first breakpoint in <span class="arg">main.c</span>.
+            You can now view variables, view memory, view disassembly, single-step, etc. in the application.</div>
+            </li>
+            <li>
+            <div class="para">Restart the target.  It will start running, then stop at the breakpoint in <span class="arg">modex.c</span>.
+            The module debug context in Debug Control should show "stopped".</div>
+            </li>
+            <li>
+            <div class="para">Select the module debug context in Debug Control.  The source file <span class="arg">modex.c</span> appears in the editor.
+            You may need to set the source substitution path to view this.
+            You can now view variables, view memory, view disassembly, single-step, etc. in the kernel module.</div>
+            </li>
+            <li>
+            <div class="para">Restart the target.  The kernel calls <span class="arg">modex_read()</span> twice, so it may be necessary to restart a second time, depending on whether you have done any stepping. It will start running, then stop at the second breakpoint in <span class="arg">main.c</span>.
+            The mainapp debug context in Debug Control should show "stopped".</div>
+            </li>
+            <li>
+            <div class="para">Select the mainapp debug context in Debug Control.
+            You can now view variables, view memory, view disassembly, single-step, etc. in the application.</div>
+            </li>
+            <li>
+            <div class="para">Run to the end of the application, then disconnect the two debug connections.</div>
+            </li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Known%20issues%20and%20troubleshooting"></a><h2>Known issues and troubleshooting</h2>
+        <ul>
+            <li>
+            <div class="para">The Linux target reports: <span class="arg"># Cannot exec ./main: Permission denied.</span>
+</div>
+            <div class="para">if you have not set execute permissions on the user-space application.  Use, for example, <span class="arg">chmod +x main</span>.</div>
+            </li>
+            <li>
+            <div class="para">The Linux target reports: <span class="arg">insmod: can't insert 'modex.ko': invalid module format</span>
+</div>
+            <div class="para">if there is a mis-match between the version of the kernel that <span class="arg">modex.ko</span> was built against and the kernel currently running on your target.  Try rebuilding <span class="arg">modex.ko</span> against the correct version of the kernel and/or change the kernel on the target to the one you've just built your module against.</div>
+            </li>
+            <li>
+            <div class="para">Breakpoints are not being hit in the kernel module:</div>
+            <div class="para">Ensure the kernel module on your target matches the one on the host.
+            The code/data layout must be identical, though the kernel module on your target does not need to contain debug symbols, i.e. these can be stripped to reduce image size.
+            Try copying the kernel module across from host to target again.</div>
+            </li>
+            <li>
+            <div class="para">The Example kernel module <span class="arg">modex.ko</span> is only accessible by user applications running as root, not by any other user.
+            This is because udev defaults to 660 access permissions.  An attempt to use <span class="arg">modex.ko</span> from non-root users will report:
+            <span class="arg">Failed to open /dev/modex</span>.</div>
+            <div class="para">A temporary workaround is for root to set: <span class="arg">chmod o+w /dev/modex</span>
+</div>
+            <div class="para">The correct solution is for root to add the file: <span class="arg">/etc/udev/rules.d/99-modex.rules</span> containing:
+            <span class="arg">KERNEL=="modex", MODE="0666"</span>
+</div>
+            </li>
+            <li>
+            <div class="para">Eclipse reports <span class="arg">Syntax error</span> in its <span class="interface">Editor</span> view for <span class="arg">printk()</span> and other source keywords commonly used in kernel modules :</div>
+            <div class="para">For example, <span class="arg">__init</span>, <span class="arg">__exit</span>, <span class="arg">module_init()</span> and <span class="arg">module_exit()</span> are defined as macros in <span class="arg">&lt;linux/init.h&gt;</span>. The kernel Makefile defines <span class="arg">__KERNEL__</span>, which is needed to activate these macros, but the Eclipse Indexer does not import Makefile defines.  This is worked-around in the supplied Eclipse project by adding <span class="arg">__KERNEL__</span> to the list of project's symbols via Project -&gt; Properties -&gt; C/C++ General -&gt; Paths and Symbols -&gt; Symbols.</div>
+            <div class="para">Furthermore, <span class="arg">printk()</span> is defined in <span class="arg">&lt;linux/kernel.h&gt;</span>, but Eclipse must be given the path to it by adding the kernel include directory (for example, <span class="arg">.../distribution/kernel/linux-2.6.38-patched-rtsm/source/include</span>) as a Workspace path to the project's Paths and Symbols 'GNU C' includes.  The kernel sources in <span class="arg">source.tar.bz2</span> must be manually untar'd on Windows for this workaround to become visible.  You can use this same workaround in your own Eclipse projects for kernel modules.</div>
+            </li>
+            <li>
+            <div class="para">Eclipse reports in its <span class="interface">Commands</span> view:</div>
+            <pre class="code">ERROR(CMD685-CMD19):
+! Failed to load symbols for "vmlinux"
+! Image ".../built/V7/vmlinux" does not exist</pre>
+            <div class="para">The kernel debug symbols are missing. To debug this example, you must have imported into Eclipse the "DS-5 Linux Example Distribution" package that can be downloaded from the Downloads page of <a href="http://ds.arm.com" title="External link"><i>ARM Development Studio 5 (DS-5) Web Site</i></a>.</div>
+            </li>
+            <li>
+            <div class="para">DS-5 reports in its <span class="interface">Commands</span> view:
+            <span class="arg">ERROR(LKN35): Unable to read target kernel version. This might be caused by a mismatch between kernel symbols and the kernel on the target or Linux is not running on the target.</span>
+</div>
+            <div class="para">The kernel debug symbols do not match the kernel on the target. You should be using the kernel debug symbols from the "DS-5 Linux Example Distribution" package that can be downloaded from the Downloads page of <a href="http://ds.arm.com" title="External link"><i>ARM Development Studio 5 (DS-5) Web Site</i></a> and a Linux distribution from one of the packages located alongside it. Rebuilding the kernels in these packages is sufficient to cause this message to appear.</div>
+            </li>
+            <li>
+            <div class="para">Eclipse reports in its <span class="interface">Commands</span> view:</div>
+            <pre class="code">ERROR(CMD16-LKN38):
+! Failed to load symbols for "modex.ko"
+! Operating system support is not active.</pre>
+            <div class="para">If this appears in conjunction with <span class="arg">ERROR(LKN35)</span> then see above entry for that error. Otherwise, ensure that the target is already running as described in <a href="./readme.html#booting"><i>Booting ARM Linux on the target</i></a>.</div>
+            </li>
+            <li>
+            <div class="para">Module fails to build with errors as follows:</div>
+            <pre class="code">scripts/selinux/genheaders/genheaders.c:13:22: error: classmap.h: No such file or directory
+scripts/selinux/genheaders/genheaders.c:14:35: error: initial_sid_to_string.h: No such file or directory
+scripts/selinux/genheaders/genheaders.c: In function 'main'
+scripts/selinux/genheaders/genheaders.c:61: error: 'secclass_map' undeclared (first use in this function)
+scripts/selinux/genheaders/genheaders.c:61: error: (Each undeclared identifier is reported only once
+scripts/selinux/genheaders/genheaders.c:61: error: for each function it appears in.)
+scripts/selinux/genheaders/genheaders.c:68: error: 'initial_sid_to_string' undeclared (first use in this function)
+make[4]: *** [scripts/selinux/genheaders/genheaders] Error 1
+make[3]: *** [scripts/selinux/genheaders] Error 2
+make[2]: *** [scripts/selinux] Error 2
+make[1]: *** [scripts] Error 2
+make: *** [all] Error 2</pre>
+            <div class="para">You can avoid this by not building the selinux build scripts. In the kernel source tree, open file <span class="arg">scripts/Makefile</span> and remove line <span class="arg">subdir-$(CONFIG_SECURITY_SELINUX) += selinux</span>.</div>
+            </li>
+
+            
+    <li>
+<div class="para">On Windows 7 and later, launching a debug configuration to connect to a Fixed Virtual Platform (FVP) model may give the following error: <span class="arg">Windows cannot find "C:\Windows\System32\telnet.exe"</span> or <span class="arg">No telnet executable was found on your system</span>.  ARM FVP models make use of "telnet" as a serial terminal, to enable serial data to be transferred from application code running on an ARM FVP via a modelled UART to a serial terminal.  This error occurs when the telnet client is disabled or otherwise unavailable on your computer.  The telnet client is not enabled by default on Windows 7 and later.  To enable the telnet client on your computer:</div>
+        <ol>
+            <li><div class="para">From the Windows Start menu, select Control Panel &gt; Programs and Features</div></li>
+            <li><div class="para">Click on "Turn Windows features on or off"</div></li>
+            <li><div class="para">From the list that appears, select the "Telnet Client" checkbox</div></li>
+            <li><div class="para">Click "OK" to close the dialog.</div></li>
+        </ol>
+    </li>
+
+
+        </ul>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0837-/index.html"><i>Fixed Virtual Platforms FVP Reference Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

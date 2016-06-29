@@ -1,0 +1,190 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Flash Programming Example</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Flash%20Programming%20Example"></a><h1>Flash Programming Example - ARM®DS-5™</h1>
+    
+        <div class="para">This example shows two ways of programming flash devices using DS-5: using a Keil Flash Method and using a Custom Flash Method written in Jython.  For convenience, the Cortex-A9x4 FVP model supplied with DS-5 is used here as the target device.  This example can be used as a template for creating new flash algorithms.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example shows two ways of programming flash devices using DS-5: using a Keil Flash Method and using a Custom Flash Method written in Jython.  For convenience, the Cortex-A9x4 FVP model supplied with DS-5 is used here as the target device.  This example can be used as a template for creating new flash algorithms.</div>
+        <div class="para">This example is an updated version of the example previously supplied with Application Note 352 "ARM DS-5 Technical introduction to file-based flash programming" (ARM DAI0352A).</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20Keil%20flash%20algorithm"></a><h2>Building the Keil flash algorithm</h2>
+        <div class="para">The Keil flash algorithm executable <span class="arg">FVP_VE_Cortex-A9x4.FLM</span> is supplied prebuilt in the <span class="arg">.../flash_example-FVP-A9x4/configdb/Flash/algorithms</span> directory, so there is no need to rebuild it before using it within this example.  However, if you need to modify the flash algorithm, for experimentation purposes, or to target a different flash device, then you must rebuild it after modifying it.</div>
+        <div class="para">The flash algorithm sources are intended to be built with ARM Compiler 5. If you wish to modify and rebuild the example, you must use ARM Compiler 5 to rebuild it.</div>
+        <div class="para">The flash algorithm sources include <span class="arg">FlashPrg.c</span> and <span class="arg">FlashDev.c</span>, that #include <span class="arg">FlashOS.h</span>.  A linker scatter file (<span class="arg">Target.scat</span>) is provided to locate the Programming Functions and Device Description correctly.</div>
+        <div class="para">The executable is built read-only position independent and read-write position independent, and is not intended to run as an standalone application.</div>
+        <div class="para">The flash algorithm can be built either with the supplied Eclipse project, or directly on the command line with the supplied <span class="arg">makefile</span> as follows:</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the Keil flash algorithm on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">.../flash_example-FVP-A9x4</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><h2>Running the example</h2>
+        <div class="para">Before running this example, you must first point DS-5 Debugger at a new User Configuration Database containing the flash algorithm and an updated debug configuration to connect to the Cortex-A9x4 FVP model.  This User Configuration Database is located in the <span class="arg">.../flash_example-FVP-A9x4/configdb</span> directory, and includes the special files <span class="arg">FVP_VE_Cortex-A9x4.FLM</span> (used by the Keil Flash example), <span class="arg">flash_example.py</span> (used by the Custom Flash example) and <span class="arg">flash.xml</span> (used by both examples).  Tell DS-5 Debugger to use this User Configuration Database as follows:</div>
+        <ol>
+            <li><div class="para">Within the DS-5 Eclipse IDE, select the <span class="menu">Window<span class="para"> → </span>Preferences</span> menu item. A dialog is displayed showing the Eclipse preferences</div></li>
+            <li><div class="para">Expand the <span class="interface">DS-5</span> entry in the left hand list and select <span class="interface">Configuration Database</span>
+</div></li>
+            <li><div class="para">Click the <span class="interface">Add</span> button to add a new User Configuration Database entry. Give the new entry a name of your choice</div></li>
+            <li><div class="para">Use the <span class="interface">Browse...</span> button to locate the <span class="arg">.../flash_example-FVP-A9x4/configdb</span> directory, then click <span class="interface">OK</span> to close the Add configuration database location dialog</div></li>
+            <li><div class="para">Click the <span class="interface">Rebuild Database...</span> button and when complete, close the Eclipse preferences dialog.</div></li>
+        </ol>
+        <div class="para">The example includes everything needed to program the "fake" flash (actually RAM) of the Cortex-A9x4 FVP model, using both the Keil Flash Method and the Custom Flash Method.  Ready-made launch configurations <span class="arg">FlashKeil-FVP-Cortex-A9x4.launch</span> and <span class="arg">FlashCustom-FVP-Cortex-A9x4.launch</span> are provided to triggers the entire flash programming process.  Some example flash images <span class="arg">FlashImage0x80000000.axf</span> and <span class="arg">FlashImage0x90000000.axf</span>) are also provided - these have been constructed to exhibit a pattern of data at address 0x80000000/0x90000000 onwards respectively.  After the flash load command has completed you should be able to use the DS-5 Debugger's Memory view to see this pattern in memory.</div>
+        <div class="para">For the <span class="arg">FlashKeil</span> example, <span class="arg">flash.xml</span> defines a fake flash address area of 0x80000000 to 0x8007FFFF (as defined in <span class="arg">FlashDev.c</span>) which is really a RAM area within the FVP.</div>
+        <div class="para">For the <span class="arg">FlashCustom</span> example, <span class="arg">flash.xml</span> defines a fake flash address area of 0x90000000 to 0x9000FFFF which is really a RAM area within the FVP.</div>
+        <div class="para">For both examples, <span class="arg">flash.xml</span> also defines a target RAM area of 0x90010000 to 0x9001FFFF into which the <span class="arg">FVP_VE_Cortex-A9x4.FLM</span> flash programming code and data buffers may be loaded.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20the%20Keil%20Flash%20Method%20example"></a><h2>Running the Keil Flash Method example</h2>
+        <div class="para">Before running this example, first ensure that you have pointed DS-5 Debugger at the new Configuration Database as mentioned above.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">FlashKeil-FVP-Cortex-A9x4.launch</span> is provided that triggers the entire Keil flash programming process.  This invokes the "<span class="arg">info flash</span>" command to report the active flash configuration(s), and then the "<span class="arg">flash load FlashImage0x80000000.axf FlashKeil</span>" command.</div>
+        <ol>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu</div></li>
+            <li><div class="para">Select the <span class="arg">FlashKeil-FVP-Cortex-A9x4</span> from the list of DS-5 Debugger configurations</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The Cortex-A9x4 FVP model will launch, DS-5 Debugger will connect to it, then download flash algorithm executable <span class="arg">FVP_VE_Cortex-A9x4.FLM</span> to address 0x90010000 and run it to program the content of <span class="arg">FlashImage0x80000000.axf</span> to address 0x80000000</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective</div></li>
+            <li><div class="para">Run the executable (press F8).</div></li>
+        </ol>
+        <div class="para">You should see the following output:</div>
+<pre class="code">Connected to stopped target ARM FVP New - FVP_VE_Cortex_A9x4-WithFlash
+Execution stopped in SVC mode at S:0x00000000
+S:0x00000000   DCI      0xe7ff0010 ; ? Undefined
+cd "C:\Documents and Settings\yourname\My Documents\DS-5 Workspace"
+Working directory "C:\Documents and Settings\yourname\My Documents\DS-5 Workspace"
+info flash
+FlashKeil
+ regions:    0x80000000-0x8007FFFF
+ parameters: programPageTimeout: 500
+             driverVersion: 257
+             programPageSize: 0x1000
+             eraseSectorTimeout: 500
+             sectorSizes: ((0x1000, 0x00000000))
+             valEmpty: 0xff
+             type: 1
+             size: 0x00080000
+             name: FVP VE Cortex-A9x4 Flash
+             address: 0x80000000
+             algorithm: FDB://algorithms/FVP_VE_Cortex-A9x4.FLM
+             coreName: ARM_Cortex-A9MP_0
+             ramAddress: 0x90010000
+             ramSize: 0x10000
+             disableTimeouts: false
+             verify: true
+:
+flash load "C:\Documents and Settings\yourname\My Documents\DS-5 Workspace\flash_example-FVP-A9x4\FlashImage0x80000000.axf" FlashKeil
+Writing segment 0x80000000 ~ 0x80080000 (size 0x80000)
+WARNING(?): Segment 0x80000000 ~ 0x80100000 can only partially be written as it does not fully correspond to selected device regions
+Flash programming completed OK (target state was not preserved)
+</pre>
+        <div class="para">Note that the warning message can be ignored as the .axf file contains more data than will fit into the flash area.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20the%20Custom%20Flash%20Method%20example"></a><h2>Running the Custom Flash Method example</h2>
+        <div class="para">Before running this example, first ensure that you have pointed DS-5 Debugger at the new Configuration Database as mentioned above.</div>
+        <div class="para">A ready-made launch configuration <span class="arg">FlashCustom-FVP-Cortex-A9x4.launch</span> is provided that triggers the entire Custom flash programming process.  This invokes the "<span class="arg">info flash</span>" command to report the active flash configuration(s), and then the "<span class="arg">flash load FlashCustom0x90000000.axf FlashCustom</span>" command.</div>
+        <ol>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu</div></li>
+            <li><div class="para">Select the <span class="arg">FlashCustom-FVP-Cortex-A9x4</span> from the list of DS-5 Debugger configurations</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The Cortex-A9x4 FVP model will launch, DS-5 Debugger will connect to it, then run the Jython script <span class="arg">flash_example.py</span> that, amongst other things, writes a small Thumb memcpy routine to address 0x90010000 and executes it to program the content of <span class="arg">FlashImage0x90000000.axf</span> to address 0x90000000</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective</div></li>
+            <li><div class="para">Run the executable (press F8).</div></li>
+        </ol>
+        <div class="para">You should see the following output:</div>
+<pre class="code">Connected to stopped target ARM FVP New - FVP_VE_Cortex_A9x4-WithFlash
+Execution stopped in SVC mode at S:0x9001143C
+S:0x9001143C   B        {pc} ; 0x9001143c
+cd "C:\Documents and Settings\yourname\My Documents\DS-5 Workspace"
+Working directory "C:\Documents and Settings\yourname\My Documents\DS-5 Workspace"
+info flash
+:
+FlashCustom
+ regions:    0x90000000-0x9000FFFF
+ parameters: coreName: ARM_Cortex-A9MP_0
+             ramAddress: 0x90010000
+             ramSize: 0x10000
+
+flash load "C:\Documents and Settings\yourname\My Documents\DS-5 Workspace\flash_example-FVP-A9x4\FlashImage0x90000000.axf" FlashCustom
+Writing segment 0x90000000 ~ 0x90010000 (size 0x10000)
+WARNING(?): Segment 0x90000000 ~ 0x90100000 can only partially be written as it does not fully correspond to selected device regions
+Flash programming completed OK (target state was not preserved)
+</pre>
+        <div class="para">Note that the warning message can be ignored as the .axf file contains more data than will fit into the flash area.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Known%20issues%20and%20troubleshooting"></a><h2>Known issues and troubleshooting</h2>
+        <ul>
+            <li>
+<div class="para">If you forget to point DS-5 at the new Configuration Database, DS-5 Debugger will report an error like:</div>
+<pre class="code">
+Launch configuration has errors
+Unable to find platform "ARM FVP New - FVP_VE_Cortex_A9x4-WithFlash" in the configuration database
+</pre>
+        <div class="para">To resolve this, use the <span class="menu">Window<span class="para"> → </span>Preferences</span> menu item as described earlier.</div>
+</li>
+        </ul>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0837-/index.html"><i>Fixed Virtual Platforms FVP Reference Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

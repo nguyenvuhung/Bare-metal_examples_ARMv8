@@ -1,0 +1,314 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Performance analysis of ARM Linux Applications using Streamline</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Performance%20analysis%20of%20ARM%20Linux%20Applications%20using%20Streamline"></a><a name="xaos"></a><h1>Performance analysis of ARM Linux Applications using Streamline - ARM®DS-5™</h1>
+    <div class="toc"><div class="indent">
+<b>Table of Contents:</b><ul>
+<li><a href="#Purpose%20and%20scope">Purpose and scope</a></li>
+<li><a href="#Building%20this%20example">Building this example</a></li>
+<li><a href="#Building%20on%20the%20command-line">Building on the command-line</a></li>
+<li><a href="#Building%20with%20Eclipse">Building with Eclipse</a></li>
+<li><a href="#Running/Debugging%20Xaos%20on%20the%20VE-Cortex-A9x1%20FVP%20model">Running/Debugging Xaos on the VE-Cortex-A9x1 FVP model</a></li>
+<li><a href="#Running/Debugging%20Xaos%20on%20a%20hardware%20target">Running/Debugging Xaos on a hardware target</a></li>
+<li><a href="#Loading%20Xaos%20onto%20the%20hardware%20target%20manually">Loading Xaos onto the hardware target manually</a></li>
+<li><a href="#Running%20Xaos%20manually">Running Xaos manually</a></li>
+<li><a href="#Analyzing%20Performance%20of%20Xaos%20using%20Streamline">Analyzing Performance of Xaos using Streamline</a></li>
+<li><a href="#Exploring%20Streamline%20(Textual%20and%20Visual)%20Annotation">Exploring Streamline (Textual and Visual) Annotation</a></li>
+<li><a href="#Known%20issues%20and%20troubleshooting">Known issues and troubleshooting</a></li>
+</ul>
+</div></div>
+    
+        <div class="para">This example illustrates Streamline performance analysis, including annotation, using the example "Xaos" application.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This document describes how to build, run and analyze the Xaos example provided with DS-5.
+        Xaos is an interactive fractal zoomer application, as described on the <a href="http://matek.hu/xaos/doku.php" title="External link"><i>Xaos web site</i></a>.
+        This example uses Xaos version 3.5 - the source code is downloadable from <a href="http://sourceforge.net/projects/xaos/files/XaoS/3.5/xaos-3.5.tar.gz/download" title="External link"><i>SourceForge</i></a>.
+        Some small additions and changes have been made to the original sources by ARM Ltd to illustrate Streamline annotation support.  Changes are marked with "ARM Ltd" to allow them to be easily found.</div>
+
+        <div class="para">This example's files can be found in the <span class="arg">...\xaos</span> directory within <span class="arg">Linux_examples.zip</span>.  Import this .zip archive into Eclipse to access the <span class="arg">xaos</span> project.</div>
+
+        <div class="para">This example is intended to be run and analyzed on an ARM Linux hardware target that supports Streamline, though it can also be run only (not analyzed with Streamline) on a software model such as the FVP model of Versatile Express with Cortex-A9x1 Core Tile (VE-Cortex-A9x1 FVP model).</div>
+        <div class="para">Example Streamline capture data for Xaos is provided in the <span class="arg">...\xaos\Streamline</span> directory.</div>
+        <div class="para">To view the Streamline capture, first launch the Streamline application.
+        In the <span class="interface">Streamline Data</span> view, click on the <span class="interface">Edit Locations...</span> button to display the
+        <span class="interface">ARM Streamline Data</span> dialog. Click <span class="interface">Add</span> to display the <span class="interface">Browse to Folder</span> dialog box.
+        Navigate to the <span class="arg">...\xaos\Streamline</span> directory, then click <span class="interface">OK</span>.  
+        The location is added to the list of Analysis Data Locations. Click <span class="interface">OK</span> to close the dialog.</div>
+
+        <div class="para">The example Streamline Capture Data provided in <span class="arg">xaos-multithreaded-VE-A15x2-A7x3.apc</span> was captured from Xaos being run
+        multi-threaded (with 5 threads) on a Versatile Express Cortex-A15x2+A7x3 ("TC2") big.LITTLE platform.
+        Double-click on <span class="arg">xaos-multithreaded-VE-A15x2-A7x3</span> in <span class="interface">Streamline Data</span> to generate an Analysis Report.
+        Click on the (xaos) process to show its 5 threads and view the annotations ("main init", "compute fractal", "update display").
+        Select X-Ray mode to view the CPU core affinity, to see which threads are running on which core/cluster at any moment.</div>
+
+        <div class="para">By default, no libraries (.so) are specified in the <span class="interface">Program Images</span> of the Analysis Report generation dialog, so the Analysis Report gives information
+        about all libraries being accessed, but not their contents.  By specifying a library in the Analysis Report generation dialog, the
+        function calls into that library are then revealed in the Analysis Report.  The library does not need to be a full debug info library - just
+        having function names in its symbol table is sufficient.  For full visibility of a library's internals, a debug version of the library (not
+        provided in DS-5) would need to be specified.
+        For example, <span class="arg">libpthread.so</span> is frequently used/called in the multi-threaded Xaos, and has a relatively small number of distinct
+        functions (as compared to, say, libc).  To view the calls/usage of libpthread.so, specify the library such as <span class="arg">libpthread-2.17.so</span>
+        in the Analysis Report generation dialog.  This library must be a copy on your host computer of the file in your ARM Linux target's file system, such as those in <span class="arg">...\DS-5 Workspace\distribution\filesystem\linaro_hf\lib</span>.</div>
+
+        <div class="para">Linux kernel symbols can also be tracked in the same way by specifying the appropriate <span class="arg">vmlinux</span> for your kernel in <span class="interface">Program Images</span>.</div>
+
+        <h3>Terminology</h3>
+        <div class="para">This document refers to 'host' and 'target' systems. The 'host' system is the Linux or Windows desktop computer that you use for most of your work.
+        The 'target' system is some ARM-based hardware (or model of such hardware) on which the example ARM Linux distribution is running.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <ul>
+           <li><div class="para">A host workstation (Linux or Windows) is required to build the example, communicate with the target, and run DS-5 Debugger.</div></li>
+           <li><div class="para">An ARM Linux hardware target such as Versatile Express Cortex-A9x4, ... that is configured for Streamline (with gator driver and daemon).</div></li>
+           <li><div class="para">A local display device (for example, an LCD panel) connected directly to your board,
+           or a remote display such as an Exceed or Xming X server running on the host workstation.</div></li>
+           <li><div class="para">A serial terminal emulator such as the Terminal view in DS-5, TeraTerm for Windows (<a href="http://hp.vector.co.jp/authors/VA002416/teraterm.html" title="External link"><i>TeraTerm Website</i></a>) or minicom for Linux, connected via a serial cable to your platform.  This may be needed when running the example on real target hardware, to monitor the ARM Linux boot process and provide a terminal interface to ARM Linux.  This is not needed if using a software model as that provides its own terminal.  To open the Terminal view in DS-5, select <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Other...</span> to open the Show View dialog box, then expand the <span class="interface">Terminal</span> group and select <span class="interface">Terminal</span>, and click OK.  To configure the terminal settings, click on <span class="interface">Settings</span> in the <span class="interface">Terminal</span> view, then select the required connection type (for example, Serial), then enter the required settings (for example, 38400 baud, 8 bits, no parity, 1 stop bit) and click OK.</div></li>
+           <li><div class="para">A secure copy program such as <span class="arg">scp</span> to allow files to be copied from host to target.
+           Windows versions of this Linux command are available, such as <span class="arg">pscp</span> as provided with <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/" title="External link"><i>PuTTY</i></a>.
+           Alternatively, use DS-5 Debugger Debug Configurations dialog or Remote System Explorer to transfer files from host to target.</div></li>
+        </ul>
+
+        <div class="para">Xaos is a graphical application in a windowing environment, so a mouse should preferably be connected to the target in addition to a normal keyboard.
+        If using the VE-Cortex-A9x1 FVP model on the host, the mouse and keyboard of the host can be used to control the Xaos application.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20this%20example"></a><h2>Building this example</h2>
+        <div class="para">A pre-built executable is provided for hard-float filesystems.
+        The hard-float executable (<span class="arg">xaos</span>, compiled with <span class="arg">-mfloat-abi=hard</span>) is targeted at the hardware floating point ABI, as found in, for example, the Linaro 12.04 and later releases.</div>
+        
+        <div class="para">This example is intended to be built with the GCC cross-compiler for ARM, such as the Linaro GCC toolchain supplied in DS-5.</div>
+
+        <div class="para">This example can be built using the Eclipse (makefile builder) project supplied,
+        or directly on the command-line using the <span class="arg">Makefile</span> supplied with the <span class="arg">make</span> utility.</div>
+        <div class="para">To rebuild this example, you must have imported into Eclipse the "DS-5 Linux Example Distribution" package that can be downloaded from the Downloads page of <a href="http://ds.arm.com" title="External link"><i>ARM Development Studio 5 (DS-5) Web Site</i></a>.  This provides the example Linux <span class="arg">distribution</span> project/directory, and headers and libraries that are compatible with the example Linux distribution.  The <span class="arg">distribution</span> project does not need to be built (actually, it cannot be built).</div>
+        <div class="para">For good performance, the compiler's optimization level is set to -O2 in the <span class="arg">Makefile</span>.  You can change this to lower the
+        optimization level to -O0 or -O1 for a better debug view, but at the cost of worse performing code generation.
+        Alternatively, you can raise it to -O3 and compile with NEON vectorization by uncommenting <span class="arg">VECT_CFLAGS</span> in <span class="arg">BASE_CFLAGS</span>.</div>
+        <div class="para">The application is built with thread support enabled by default.  <span class="arg">aconfig.h</span> contains <span class="arg">#define USE_PTHREAD</span> and
+        the <span class="arg">Makefile</span> has <span class="arg">-pthread</span> in its compile and link steps.  The number of threads for Xaos to create and use is set when Xaos is launched with, for example, <span class="arg">./xaos -threads 5</span>.</div>
+        <div class="para">The build produces both stripped and unstripped versions of the ELF executables <span class="arg">xaos</span> and <span class="arg">xaos</span>.
+        The unstripped (debug) versions contain debug information for loading into DS-5 Debugger on the host.
+        Smaller stripped (no debug) versions for downloading to the target are created by stripping off the debug information.</div>
+        <div class="para">Note that the other build files provided as part of xaos-3.5, such as <span class="arg">configure</span>, <span class="arg">Makefile.ini</span> and <span class="arg">install-sh</span> are not used here.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+            <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">GCC 4.x [arm-linux-gnueabihf] (DS-5 built-in)</span> from the list</div></li>
+            <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "GCC 4.x [arm-linux-gnueabihf] (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to <span class="arg">...\xaos</span> then type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">Makefile</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Building%20with%20Eclipse"></a><h2>Building with Eclipse</h2>
+
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+
+        <div class="para">The supplied <span class="arg">xaos</span> Eclipse (makefile builder) project is used to build this example.</div>
+    </div>
+
+     <div class="indent">
+        <a name="Running/Debugging%20Xaos%20on%20the%20VE-Cortex-A9x1%20FVP%20model"></a><h2>Running/Debugging Xaos on the VE-Cortex-A9x1 FVP model</h2>
+        <div class="para">Note: this feature is not available in DS-5 Community Edition.</div>
+        <div class="para">This example is intended to be run and analyzed on an ARM Linux hardware target that supports Streamline, though it can also be run and debugged (but not analyzed) on the VE-Cortex-A9x1 FVP model by using the supplied <span class="arg">xaos-FVP</span> debug configuration.</div>
+        <div class="para">Select <span class="menu">Run<span class="para"> → </span>Debug Configurations</span>, then select
+        <span class="arg">xaos-FVP</span> under the DS-5 Debugger configuration type, and press <span class="menu">Debug</span>.
+        This is pre-configured to launch Linux on the VE-Cortex-A9x1 FVP model, load the debug information from the debug (unstripped) version of <span class="arg">xaos</span>, then start executing Xaos, stopping at <span class="arg">main()</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Running/Debugging%20Xaos%20on%20a%20hardware%20target"></a><h2>Running/Debugging Xaos on a hardware target</h2>
+        <div class="para">Xaos can be run and debugged on a hardware target by using the supplied <span class="arg">xaos-gdbserver</span> debug configuration.</div>
+    <ul>
+        <li><div class="para">If you have not done so already, boot ARM Linux on your target and log-in as <span class="arg">root</span>
+</div></li>
+        <li><div class="para">Create a Linux/ssh Remote System Explorer connection for your target</div></li>
+        <li><div class="para">Select <span class="menu">Run<span class="para"> → </span>Debug Configurations</span>, then selecting the
+        <span class="arg">xaos-gdbserver</span> under the DS-5 Debugger configuration type, and press <span class="menu">Debug</span>.
+        This is pre-configured to download the stripped <span class="arg">xaos</span> executable to the target, start gdbserver on the target, load the debug information from the debug (unstripped) version of the image into DS-5 Debugger, then start executing xaos, stopping at <span class="arg">main()</span>.</div></li>
+    </ul>
+    </div>
+
+    <div class="indent">
+        <a name="Loading%20Xaos%20onto%20the%20hardware%20target%20manually"></a><h2>Loading Xaos onto the hardware target manually</h2>
+        <div class="para">Instead of using the supplied <span class="arg">xaos-gdbserver</span> debug configuration, the example stripped executable (<span class="arg">xaos</span> or <span class="arg">xaos</span>) can be manually downloaded onto the target, before the example can be run/debugged.
+        To load this file onto the target, you can either:</div>
+    <ul>
+        <li>
+<div class="para">use DS-5 Debugger <span class="interface">Debug Configurations</span> dialog - see <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1359978717205.html"><i>Configuring a connection to a Linux target using gdbserver</i> in <i>DS-5 Debugger User Guide</i></a> for more information on how to load the image</div>
+        </li>
+        <li><div class="para">use Remote System Explorer to drag and drop this file from the host to target file system, then set execute permissions on the copied executable on the target with Remote System Explorer's <span class="menu">Properties<span class="para"> → </span>Permissions</span> option</div></li>
+        <li>
+<div class="para">perform the manual copy steps as follows:</div>
+           <ol>
+           <li>
+           <div class="para">On the target, obtain the IP address of the target with:</div>
+           <div class="para"><span class="arg">ifconfig</span></div>
+           <div class="para">to give, for example, 10.1.204.172</div>
+           </li>
+
+           <li>
+           <div class="para">To load the example onto the target, navigate to the <span class="arg">...\xaos\stripped</span> directory, then
+           copy the generated stripped files from the host to your home directory on the target.</div>
+           <div class="para">If logged-in as root, copy to a writable directory in its home directory with, for example, these commands on a Linux host:</div>
+           <div class="para"><span class="arg">scp xaos root@10.1.204.172:/writeable</span></div>
+           <div class="para">Windows users might need to use <span class="arg">pscp</span> from PuTTY instead of <span class="arg">scp</span>.</div>
+           </li>
+
+           <li>
+           <div class="para">Set execute permissions on the copied executable on the target with <span class="arg">chmod +x xaos</span> on the target console</div>
+           </li>
+           </ol>
+        </li>
+    </ul>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20Xaos%20manually"></a><h2>Running Xaos manually</h2>
+        <div class="para">Instead of using the supplied <span class="arg">xaos-FVP</span> or <span class="arg">xaos-gdbserver</span> debug configurations, Xaos can be run directly from the target's command-line.</div>
+        <div class="para">First, navigate to the directory on the target where <span class="arg">xaos</span> is located, then execute the following commands on the target:</div>
+        <div class="para">
+<span class="arg">export DISPLAY=:0.0</span> for a local display, or, for example, <span class="arg">export DISPLAY=10.1.201.33:0.0</span> to open its window on the host's X server, where 10.1.201.33 is the host's IP address</div>
+        <div class="para"><span class="arg">./xaos</span></div>
+        <div class="para">Or, to run multi-threaded:</div>
+        <div class="para"><span class="arg">./xaos -threads 5</span></div>
+        <div class="para">The Xaos application will start running, and its graphical display appears on the target display after a few seconds.
+        With the mouse or keyboard, select <span class="menu">UI<span class="para"> → </span>Autopilot</span> to start the animation, alternatively, use:</div>
+        <div class="para"><span class="arg">./xaos -threads 5 -autopilot</span></div>
+    </div>
+
+    <div class="indent">
+        <a name="Analyzing%20Performance%20of%20Xaos%20using%20Streamline"></a><h2>Analyzing Performance of Xaos using Streamline</h2>
+        <div class="para">Assuming the stripped Xaos executable has already been loaded to the target, its performance can now be analyzed with Streamline.</div>
+        <ol>
+        <li>
+        <div class="para">First prepare the Streamline capture configuration in the <span class="interface">Streamline Data</span> view:
+        Click on <span class="interface">Capture &amp; analysis options</span> and enter a name for the capture session.
+        In the Address field, enter the host name or IP address of the target.
+        Select an Output path to where to save the data.
+        Add the name of the program image to capture - for this example, Streamline must load the debug information from the debug (unstripped)
+        version of the image at <span class="arg">${workspace_loc}\xaos\xaos-3.5\bin\xaos</span>.  Optionally, add the names of any libraries to capture symbols from, such as <span class="arg">libpthread.so</span>.  
+        Linux kernel symbols can also be tracked by adding the appropriate <span class="arg">vmlinux</span> for your kernel.
+        Click <span class="interface">Save</span> to return to <span class="interface">Streamline Data</span>.</div>
+        </li>
+        <li>
+        <div class="para">Before pressing the <span class="interface">Start capture</span> in <span class="interface">Streamline Data</span>, start Xaos running multi-threaded on the target with <span class="arg">./xaos -threads 5 -autopilot</span>.  
+        For Streamline visual annotation too, use <span class="arg">./xaos -threads 5 -autopilot -streamlinevisualannotation</span> (see later).</div>
+        </li>
+        <li>
+        <div class="para">Press <span class="interface">Start capture</span>.  If the capture configuration is correct, a new analysis file appears in the
+        <span class="interface">Streamline Data</span>, with a <span class="interface">Stop</span> button within it.</div>
+        </li>
+        <li>
+        <div class="para">Let Xaos run for 30 seconds or so, then press <span class="interface">Stop</span> in <span class="interface">Streamline Data</span>.
+        The collected data is then processed for viewing.</div>
+        </li>
+        <li>
+        <div class="para">When the analysis completes, Streamline automatically opens the Analysis Report.
+        To analyze the captured data again with other settings, click on the Options gear-wheel icon on the right-hand side of the <span class="arg">Streamline_annotate</span> Capture Data.</div>
+        </li>
+        </ol>
+        <div class="para">For more information, see <a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0482-"><i>ARM DS-5 Streamline User Guide</i></a> and the ARM Streamline Quick Start cheat sheet.  The cheat sheet can be found under <span class="interface">ARM</span> at <span class="menu">Help<span class="para"> → </span>Cheat Sheets...</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Exploring%20Streamline%20(Textual%20and%20Visual)%20Annotation"></a><h2>Exploring Streamline (Textual and Visual) Annotation</h2>
+        <div class="para">Some small additions and changes have been made to the original sources by ARM Ltd to illustrate Streamline annotation support, for both textual annotation and visual annotation.  Changes are marked with "ARM Ltd" to allow them to be easily found.  The main changes are:</div>
+        <ul>
+        <li><div class="para">
+<span class="arg">streamline_annotate.c/.h</span> are added to provide macro definitions of ANNOTATE_* functions</div></li>
+        <li><div class="para">
+<span class="arg">annotate.c</span> is added to deliver a splash image and Xaos fractal screen data to Streamline for visual annotation, via the functions <span class="arg">VisualAnnotateSplashImage</span> and <span class="arg">VisualAnnotateImage</span> respectively</div></li>
+        <li><div class="para">
+<span class="arg">zoom.c</span> is modified for textual annotation showing where fractal computation starts and finishes</div></li>
+        <li><div class="para">
+<span class="arg">ui.c</span> is modified to setup annotation, to provide a <span class="arg">-streamlinevisualannotation</span> command-line switch to activate Streamline visual annotation, and for textual annotation showing where main init starts and finishes</div></li>
+        <li><div class="para">
+<span class="arg">ui_gtk.c</span> is modified to call the functions <span class="arg">VisualAnnotateSplashImage</span> and <span class="arg">VisualAnnotateImage</span> at appropriate places, and for textual annotation showing where display updates start and finish.</div></li>
+        </ul>
+        <div class="para">Further small additions have been made by ARM Ltd to add annotation of thread functions.  <span class="arg">readme.txt</span> gives the full list of changed files and functions.</div>
+        <div class="para">This Streamline visual annotation support code is activated by running Xaos with the <span class="arg">-streamlinevisualannotation</span> switch.  This is already added into the <span class="arg">xaos-gdbserver</span> debug configuration, but not into <span class="arg">xaos-FVP</span> because Streamline is not supported on models.</div>
+        <div class="para">The <span class="arg">xaos-gdbserver</span> debug configuration not only copies <span class="arg">xaos</span> to the target, but also the Streamline splash screen <span class="arg">splash.bmp</span> that is captured early in the visual annotation.</div>
+        <div class="para">The master sources for the Streamline annotation C source and header files <span class="arg">streamline_annotate.c/.h</span> are provided in <span class="arg">install_directory\sw\streamline\gator\annotate\</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Known%20issues%20and%20troubleshooting"></a><h2>Known issues and troubleshooting</h2>
+        <ul>
+            <li>
+            <div class="para">When attempting to build this example, if Eclipse or make reports: <span class="arg">fatal error: cairo.h: No such file or directory</span>.</div>
+            <div class="para">This will occur if you have not imported the example Linux <span class="arg">distribution</span> project/directory, or not unzipped all the examples, or accidentally deleted <span class="arg">...\distribution\filesystem\</span>.  The example Linux <span class="arg">distribution</span> project/directory is provided in the "DS-5 Linux Example Distribution" package that can be downloaded from the Downloads page of <a href="http://ds.arm.com" title="External link"><i>ARM Development Studio 5 (DS-5) Web Site</i></a>.</div>
+            </li>
+            <li>
+            <div class="para">The Linux target will report: <span class="arg"># Cannot exec ./xaos: Permission denied.</span>
+</div>
+            <div class="para">if you have not set execute permissions on the application.  Use, for example, <span class="arg">chmod +x xaos</span>.</div>
+            </li>
+            <li>
+            <div class="para">The Linux target will report: <span class="arg">Connection Failed: Failed to delete file /home/root/(app): Permission denied.</span>
+</div> 
+            <div class="para">if you don't have permissions to write in the root folder. Modify your Debug Configuration, and set, in <span class="menu">Files</span> Tab, a writeable folder in <span class="interface">Target download directory:</span>.</div> 
+            </li>
+            <li>
+            <div class="para">Breakpoints are not being hit in an application or shared library:</div>
+            <div class="para">Ensure the application and any shared libraries on your target match the ones on the host.
+            The code/data layout must be identical, though the application/shared library on your target does not need to contain debug symbols, i.e. these can be stripped to reduce image size.
+            Try copying the application/shared library across from host to target again.</div>
+            </li>
+
+            
+    <li>
+<div class="para">On Windows 7 and later, launching a debug configuration to connect to a Fixed Virtual Platform (FVP) model may give the following error: <span class="arg">Windows cannot find "C:\Windows\System32\telnet.exe"</span> or <span class="arg">No telnet executable was found on your system</span>.  ARM FVP models make use of "telnet" as a serial terminal, to enable serial data to be transferred from application code running on an ARM FVP via a modelled UART to a serial terminal.  This error occurs when the telnet client is disabled or otherwise unavailable on your computer.  The telnet client is not enabled by default on Windows 7 and later.  To enable the telnet client on your computer:</div>
+        <ol>
+            <li><div class="para">From the Windows Start menu, select Control Panel &gt; Programs and Features</div></li>
+            <li><div class="para">Click on "Turn Windows features on or off"</div></li>
+            <li><div class="para">From the list that appears, select the "Telnet Client" checkbox</div></li>
+            <li><div class="para">Click "OK" to close the dialog.</div></li>
+        </ol>
+    </li>
+
+
+        </ul>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358795678064.html"><i>Getting started with the debugger</i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1359978717205.html"><i>Configuring a connection to a Linux target using gdbserver</i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1359990893211.html"><i>About breakpoints and watchpoints</i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0482-"><i>ARM DS-5 Streamline User Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

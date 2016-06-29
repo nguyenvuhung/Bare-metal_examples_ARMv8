@@ -1,0 +1,147 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Jython State Display Example</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Jython%20State%20Display%20Example"></a><h1>Jython State Display Example - ARM®DS-5™</h1>
+    
+        <div class="para">This example illustrates the use of a Jython script in DS-5 Debugger to display the state (stack frame / execution context) of an application.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example illustrates the use of a Jython script in DS-5 Debugger to display the state (stack frame / execution context) of an application.
+It can be used with DS-5 Debugger connected to any ARM-based target, either bare-metal or Linux.
+        It uses several DS-5 Debugger-specific Jython classes/services (such as <span class="arg">getExecutionContext()</span>, <span class="arg">getProgramAddress()</span>, <span class="arg">getRegisterNames()</span>, etc) to perform the operation.
+        This example is intended to illustrate features of the DS-5 Debugger - it is not intended to be a tutorial on Jython.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Using%20the%20example"></a><h2>Using the example</h2>
+        <div class="para">To use this example, first connect DS-5 Debugger to a target in the normal way, run some code, then stop the target at the point of interest.  Then run the <span class="arg">infostate.py</span> Jython script in one of the following ways:</div>
+        <div class="para">In the <span class="interface">Command</span> field of the <span class="interface">Command</span> view, enter the <span class="arg">source</span> command to run <span class="arg">infostate.py</span>, for example:</div>
+<pre class="code">
+source jython_infostate/infostate.py
+</pre>
+        <div class="para">Alternatively, "drag and drop" the <span class="arg">infostate.py</span> file from the <span class="interface">Project Explorer</span> view into the <span class="interface">Scripts</span> view, then double-click on it to execute it.  The <span class="interface">Jython Script Parameters</span> control in the <span class="interface">Scripts</span> view also allows you to specify parameters to be passed to a script.</div>
+
+        <div class="para">For an example of a bare-metal application, launch <span class="arg">fireworks_AC5-Cortex-A9x1-FVP</span>, run it for a few seconds, then stop it, and execute the script, which gives output like this:</div>
+<pre class="code">
+State information
+=================
+Number of execution contexts: 1
+    Name, Identifier, Kind, State, isScheduled
+ 0  ARM_Cortex-A8, 1, CORE, STOPPED, True
+    Stack:
+         0  pA:S:0x000003EC, PC:0x000003EC, SP:0x0008FFD8, LR:0x00000451, CPSR:0x40000173
+            R0=0x000000B1, R1=0x0000019B, R2=0x00000000, R3=0x00500000, R4=0x00041094, R5=0x00024AC8, R6=0x00024450, R7=0x0002441F, R8=0x00000000, R9=0xFFFFFFFF, R10=0x00024450, R11=0x00024450, R12=0x000424CF
+            [C:/Documents and Settings/ds5user/My Documents/DS-5 Workspace/fireworks_A9-FVP_AC5/src/Fireworks.c:173:1]
+            0   STRH     r2,[r3,r0,LSL #1]
+            1   BX       lr
+            *2* PUSH     {r4-r6,lr}
+            3   MOV      r5,r0
+            4   MOV      r4,r1
+         1  pA:S:0x00000450, PC:0x00000450, SP:0x0008FFD8
+            R0=-, R1=-, R2=-, R3=-, R4=0x00041094, R5=0x00024AC8, R6=0x00024450, R7=0x0002441F, R8=0x00000000, R9=0xFFFFFFFF, R10=0x00024450, R11=0x00024450, R12=-
+            [C:/Documents and Settings/ds5user/My Documents/DS-5 Workspace/fireworks_A9-FVP_AC5/src/Fireworks.c:194:2]
+            0   MOVS     r2,#0
+            1   BL       plot ; 0x3EC
+            *2* LDRB     r0,[r4,#0x10]
+            3   SUBS     r0,r0,#1
+            4   UXTB     r0,r0
+         2  pA:S:0x000009D6, PC:0x000009D6, SP:0x0008FFF0
+            R0=-, R1=-, R2=-, R3=-, R4=0x00041094, R5=0x000000D3, R6=0x00024450, R7=0x0002441F, R8=0x00000000, R9=0xFFFFFFFF, R10=0x00024450, R11=0x00024450, R12=-
+            [C:/Documents and Settings/ds5user/My Documents/DS-5 Workspace/fireworks_A9-FVP_AC5/src/Fireworks.c:448:4]
+            0   MOV      r0,r4
+            1   BL       moveSpark ; 0x420
+            *2* CBZ      r0,{pc}+6 ; 0x9dc
+            3   ADDS     r5,r5,#1
+            4   B        {pc}+0x1e ; 0x9f8
+:
+</pre>
+        <div class="para">For an example of a multi-threaded multi-core Linux application, launch <span class="arg">xaos-FVP</span>, run it for a few seconds, then stop it, and execute the script, which gives output like this:</div>
+<pre class="code">
+State information
+=================
+Number of execution contexts: 5
+    Name, Identifier, Kind, State, isScheduled
+ 0  Thread 1184, 1184, USER_THREAD, STOPPED, True
+    Stack:
+         0  pA:0x00050744, PC:0x00050744, SP:0xBEFE5A30, LR:0x00050744, CPSR:0x20000010
+            R0=0x3E0548B8, R1=0x008548B7, R2=0x0000007B, R3=0xC3DAF900, R4=0x3EB8B7CB, R5=0xBF5C7339, R6=0x3E6B9A36, R7=0x3C8D1DD0, R8=0x3E7DDA52, R9=0xBF216594, R10=0x00000077, R11=0xBEFE5A6C, R12=0x00000000
+            [C:/Documents and Settings/ds5user/My Documents/DS-5 Workspace/xaos/xaos-3.5/src/engine/docalc.c:219:0]
+            0   MOV      r1,r4
+            1   BL       __aeabi_fmul ; 0x80620
+            *2* MOV      r7,r0
+            3   MOV      r0,r9
+            4   MOV      r1,r9
+         1  pA:0x0005F6DC, PC:0x0005F6DC, SP:0xBEFE5A70
+            R0=-, R1=-, R2=-, R3=-, R4=0x000A9D88, R5=0x3E6B9A36, R6=0xBF5C7339, R7=0xBF5C7339, R8=0x0000001E, R9=0x00000000, R10=0x3E6B9A36, R11=0xBEFE5A9C, R12=0x00000000
+            [C:/Documents and Settings/ds5user/My Documents/DS-5 Workspace/xaos/xaos-3.5/src/engine/calculate.h:19:0]
+            0   MOV      lr,pc
+            1   BX       r12
+            *2* B        {pc}-0x48 ; 0x5f694
+            3   SUB      r1,r11,#0x28
+            4   SUB      r2,r11,#0x2c
+         2  pA:0x00061870, PC:0x00061870, SP:0xBEFE5AA0
+            R0=-, R1=-, R2=-, R3=-, R4=0xB4411C7C, R5=0x0019DBE0, R6=0xB4412658, R7=0x00000007, R8=0xB4411298, R9=0x000A9D88, R10=0xFFFFFFF8, R11=0xBEFE5AE4, R12=0x00000000
+            [C:/Documents and Settings/ds5user/My Documents/DS-5 Workspace/xaos/xaos-3.5/src/engine/zoomd.c:115:0]
+            0   SUB      r7,r7,#1
+            1   BL       calculate ; 0x5F5A0
+            *2* MOV      r10,#1
+            3   LDR      r1,[r11,#-0x28]
+            4   STR      r0,[r4,#-4]
+ 1  Thread 1185, 1185, USER_THREAD, STOPPED, True
+    Stack:
+         0  pA:0x00050070, PC:0x00050070, SP:0xB6495C88, LR:0x00050070, CPSR:0x20000010
+            R0=0xBE9B32CF, R1=0x009B32CE, R2=0x0000007C, R3=0xE65A2C00, R4=0x3E63AB32, R5=0xBF249269, R6=0x3ED397D5, R7=0x00000077, R8=0x40800000, R9=0xBF5C7055, R10=0x3EF16B4C, R11=0xB6495CDC, R12=0x81D5F925
+            [C:/Documents and Settings/ds5user/My Documents/DS-5 Workspace/xaos/xaos-3.5/src/engine/docalc.c:580:0]
+            0   MOV      r0,r5
+            1   BL       __aeabi_fmul ; 0x80620
+            *2* SUB      r7,r7,#1
+            3   MOV      r1,r0
+            4   BL       __addsf3 ; 0x80380
+         1  pA:0x0005F6DC, PC:0x0005F6DC, SP:0xB6495CE0
+            R0=-, R1=-, R2=-, R3=-, R4=0x000A9D88, R5=0x3E6B9260, R6=0xBF5C7055, R7=0xBF5C7055, R8=0x0000001F, R9=0x00000000, R10=0x3E6B9260, R11=0xB6495D0C, R12=0x81D5F925
+            [C:/Documents and Settings/ds5user/My Documents/DS-5 Workspace/xaos/xaos-3.5/src/engine/calculate.h:19:0]
+            0   MOV      lr,pc
+            1   BX       r12
+            *2* B        {pc}-0x48 ; 0x5f694
+            3   SUB      r1,r11,#0x28
+            4   SUB      r2,r11,#0x2c
+:
+</pre>
+        <div class="para">It is also possible to trigger execution of a Jython script when a breakpoint is hit:</div>
+        <ol>
+            <li><div class="para">Connect to a target, and set a breakpoint in the code in the normal way</div></li>
+            <li><div class="para">In the <span class="interface">Breakpoints</span> view, right-mouse-click on the breakpoint and select <span class="interface">Properties</span>
+</div></li>
+            <li><div class="para">In the <span class="interface">On break, run script</span> field, enter the name of the Jython (.py) script you wish to run.  A Debugger (.ds) script could be specified here instead.</div></li>
+            <li><div class="para">Run the code, and when the breakpoint is hit, the specified script will execute.</div></li>
+        </ol>
+
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358799450937.html"><i>Debugging with scripts</i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

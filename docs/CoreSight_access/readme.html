@@ -1,0 +1,95 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>CoreSight Access Library</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="CoreSight%20Access%20Library"></a><h1>CoreSight Access Library - ARM®DS-5™</h1>
+    <div class="toc"><div class="indent">
+<b>Table of Contents:</b><ul>
+<li><a href="#Purpose%20and%20scope">Purpose and scope</a></li>
+<li><a href="#Getting%20Started%20with%20the%20Library.">Getting Started with the Library.</a></li>
+<li><a href="#Create%20the%20API%20Documentation.">Create the API Documentation.</a></li>
+</ul>
+</div></div>
+    
+        <div class="para">The CoreSight Access Library provides an API to enable user code to interact directly with CoreSight trace devices on your target.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+      <div class="para">The CoreSight Access Library API enables directly programmable access with CoreSight devices on your target.  This allows, for example, program execution trace to be captured in a production system without the need to have an external debugger connected.  The saved trace can be retrieved later and loaded into DS-5 Debugger for analysis.</div>
+      <div class="para">
+        The library supports a number of different CoreSight components on several target boards as described in the <span class="arg">readme.md</span> file.  You can modify the library it to support other CoreSight components and/or boards.
+      </div>
+      <div class="para">An example Linux application ("<span class="arg">tracedemo</span>") that exercises the library is provided.  As it runs, <span class="arg">tracedemo</span> creates several files on the target, including the captured trace.  Ready-made example capture files are provided that can be loaded into DS-5 Debugger.</div>
+      
+    </div>
+
+  <div class="indent">
+    <a name="Getting%20Started%20with%20the%20Library."></a><h2>Getting Started with the Library.</h2>
+    <div class="para">The sources are provided in <span class="arg">[DS-5 install dir]\examples\CoreSight_Access_Library.zip</span>.</div>
+    <div class="para">Either import the example into the DS-5 Eclipse workspace, or unpack to a suitable location.</div>
+    <div class="para">See the following <span class="arg"><span class="bold">readme*</span></span> text files for further information: </div>
+    <ul>
+      <li>
+        <div class="para">
+          <span class="arg">./readme.md</span>:-
+        </div> 
+        <div class="para">
+          A text file in library root directory. Contains information on supported CoreSight components, documentation and building and using the library.
+        </div>
+        <div class="para"> This file also contains the latest version information for the library and API additions and changes.</div>
+      </li>
+      <li>
+        <div class="para">
+          <span class="arg">./build/readme_buildlib.md</span>:-
+        </div>
+        <div class="para">
+          A text file containing information for building the library.
+        </div>
+      </li>
+      <li>
+        <div class="para">
+          <span class="arg">./demos/readme_demos.md</span>:-
+        </div>
+        <div class="para">
+          A text file containing step by step guide for building and executing the demos, and collecting the resulting trace in DS-5 Debugger.
+        </div>
+      </li>
+    </ul>
+  </div>
+
+    <div class="indent">
+        <a name="Create%20the%20API%20Documentation."></a><h2>Create the API Documentation.</h2>
+      <div class="para">To create the API documentation, you need to have installed <span class="bold">Doxygen</span>.  Then run:</div>
+      <div class="para">
+        <span class="arg">doxygen ./doxygen-cfg.txt</span>
+      </div>
+      <div class="para">The resulting API documentation can then be found in <span class="arg">./doc/html.</span>
+</div>
+      <div class="para">This documentation also contains all the information found in the <span class="arg"><span class="bold">readme*.md</span></span> text files. </div>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

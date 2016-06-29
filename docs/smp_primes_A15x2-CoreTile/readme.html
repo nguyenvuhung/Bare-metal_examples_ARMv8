@@ -1,0 +1,240 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Prime Numbers SMP Example for ARM Compiler 5 and Cortex-A15MPCore</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Prime%20Numbers%20SMP%20Example%20for%20ARM%20Compiler%205%20and%20Cortex-A15MPCore"></a><h1>Prime Numbers SMP Example for ARM Compiler 5 and Cortex-A15MPCore - ARM®DS-5™</h1>
+    
+        <div class="para">This example is intended to illustrate the symmetric multiprocessing (SMP) features of the DS-5 Debugger.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example is intended to illustrate the symmetric multiprocessing (SMP) features of the DS-5 Debugger.  Primes is a simple bare-metal, semihosted example written in C and assembler that uses up to four cores to find prime numbers, using shared memory and mutexes to arrange co-operation between the cores.  Being semihosted and not relying on any special peripherals, the smp_primes project can be easily ported to other platforms by simply changing the scatter file.  This variant of the primes example is intended to be run on a Versatile Express Cortex-A15x2+A7x3 ("TC2") platform (not supplied with DS-5, but is available separately).  A ready-made launch configuration <span class="arg">smp_primes-A15MPCore-versatile.launch</span> is provided.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <ul>
+           <li><div class="para">A Versatile Express Cortex-A15x2+A7x3 ("TC2") and a suitable power supply for it.</div></li>
+           <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to Versatile Express Cortex-A15x2+A7x3</div></li>
+           <li><div class="para">A serial terminal emulator such as the Terminal view in DS-5, TeraTerm for Windows (<a href="http://hp.vector.co.jp/authors/VA002416/teraterm.html" title="External link"><i>TeraTerm Website</i></a>) or minicom for Linux, connected via a serial cable to your platform.  This may be needed when running the example on real target hardware, to monitor the Boot Loader and provide a serial terminal interface.  This is not needed if using a software model as that provides its own terminal.  To open the Terminal view in DS-5, select <span class="menu">Window<span class="para"> → </span>Show View<span class="para"> → </span>Other...</span> to open the Show View dialog box, then expand the <span class="interface">Terminal</span> group and select <span class="interface">Terminal</span>, and click OK.  To configure the terminal settings, click on <span class="interface">Settings</span> in the <span class="interface">Terminal</span> view, then select the required connection type (for example, Serial), then enter the required settings (for example, 38400 baud, 8 bits, no parity, 1 stop bit) and click OK.
+</div></li>
+        </ul>
+        
+        <div class="para"> The source code is intended to be built with ARM Compiler 5 and depends on semihosting support being provided by the debug system. ARM Compiler 5 is provided with DS-5 and the DS-5 Debugger will automatically enable semihosting for the image so long as it is built with ARM Compiler 5 5.0.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">ARM Compiler 5 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "ARM Compiler 5 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\smp_primes_A15x2-CoreTile</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20the%20example"></a><a name="running"></a><h2>Running the example</h2>
+        <ol>
+            <li><div class="para">Select <span class="interface">Debug Configurations</span> from the <span class="interface">Run</span> menu.</div></li>
+            <li><div class="para">Select the <span class="arg">smp_primes-A15MPCore-versatile</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging. Debugging requires the DS-5 Debug perspective. If the <span class="interface">Confirm Perspective Switch</span> dialog box opens, click on <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">The example image will be downloaded to all cores on the target and run to <span class="arg">main()</span>. All open views will be refreshed.</div></li>
+            <li><div class="para">Run the executable (press F8). In the <span class="interface">App Console</span> view, you will see output of the form:</div></li>
+        </ol>
+<pre class="code">
+CPU 0: Starting calculation
+CPU 0: 41 (prime 13 of 10000)
+CPU 0: 43 (prime 14 of 10000)
+CPU 0: 47 (prime 15 of 10000)
+CPU 1: Starting calculation
+CPU 0: 53 (prime 16 of 10000)
+CPU 1: 59 (prime 17 of 10000)
+...
+CPU 0: 100297 (prime 9999 of 10000)
+CPU 1: 100307 (prime 10000 of 10000)
+CPU 0: Finished
+CPU 1: Finished
+</pre>
+        <div class="note"><div class="para">
+<div class="bold">Note</div>
+<div>The output may not appear exactly as above.  Primes may occasionally get generated out of order.</div>
+</div></div>
+        <div class="note"><div class="para">
+<div class="bold">Note</div>
+<div>The array of primes is pre-seeded to start with the 13th prime number (41).</div>
+</div></div>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20the%20Example"></a><h2>Debugging the Example</h2>
+        <div class="para">To debug the example, follow the steps described under <a href="./readme.html#running"><i>Running the example</i></a>, but do not run the executable.</div>
+        <div class="para">Ensure the debug information will be loaded from the debug (unstripped) version of the image, and a breakpoint will be set on the <span class="arg">main()</span> function. These are the default settings in the provided launch configurations.</div>
+        <div class="para">Also check that the 'right arrow' button at the top right of the <span class="interface">Debug Control</span> view has the <span class="arg">s</span> highlighted and the <span class="arg">i</span> greyed out, so that you are in 'source level step' mode.</div>
+        <div class="para">After connecting to the target you can view each core, set (possibly conditional) breakpoints for some or all cores, examine variables, registers and memory as they appear for each core, view the call stack for each core, etc, as illustrated in the following example session:</div>
+        <ol>
+            <li><div class="para">At <span class="arg">main()</span>, the <span class="interface">Debug Control</span> view shows all cores on the target system. Core 0 is stopped at main(), and the other cores are stopped too.</div></li>
+            <li><div class="para">Select Core 1 in the <span class="interface">Debug Control</span> view to see that it is in a holding pen waiting to be activated by an interrupt.</div></li>
+            <li>
+                <div class="para">Select Core 0 in the <span class="interface">Debug Control</span> view. Set a breakpoint on the call to <span class="arg">calculatePrimes(id);</span> on line 35. Run to the breakpoint and see that the value of <span class="arg">id</span> as shown in the <span class="interface">Variables</span> view matches the core number shown for the highlighted core in the <span class="interface">Debug Control</span> view and the value output in the <span class="interface">App Console</span> view, remembering that the highlighted core will have changed if a different core has hit the breakpoint. Continue running (click on the green Continue arrow in <span class="interface">Debug Control</span>, or press F8) to see each of the other cores hit this breakpoint.</div>
+                <div class="note"><div class="para">
+<div class="bold">Note</div>
+<div>Breakpoints will not necessarily be hit in the order that they are set in the file, for example two different cores might hit the first breakpoint before any core hits the second breakpoint.</div>
+</div></div>
+                <div class="note"><div class="para">
+<div class="bold">Note</div>
+<div>Breakpoints will not necessarily be hit once for each core. Multiple cores may stop at the same breakpoint at the same time.</div>
+</div></div>
+            </li>
+            
+            
+            <li><div class="para">Step into <span class="arg">calculatePrimes()</span> (press F5). <span class="arg">primes.c</span> opens in the <span class="interface">Editor</span>. Set a breakpoint on <span class="arg">printf("CPU %d: %d (prime %d of %d)\n", id, number, prime_count, target_count);</span> (line 50). In the <span class="interface">Breakpoint</span> view, right-mouse-click on this breakpoint and select <span class="interface">Properties</span>. Tick <span class="interface">Break on Selected Threads or Cores</span> and select Core 1, then click <span class="interface">OK</span>. Continue running (press F8). You may see other cores producing prime numbers in the <span class="interface">App Console</span> view. When the breakpoint is hit, step over (press F6) to see the message for Core 1 in the <span class="interface">App Console</span> view.</div></li>
+            <li><div class="para">Select <span class="arg">calculatePrimes</span> in the <span class="interface">Stack</span> view for Core 1. Compare the <span class="interface">Variables</span> and <span class="interface">Registers</span> views with their appearance if you select <span class="arg">calculatePrimes</span> in the <span class="interface">Stack</span> view for Core 0. DS-5 Debugger's views show information specific to the selected core. Values that are different on different cores are shown in yellow when you change the selected core.</div></li>
+            <li><div class="para">Right-mouse-click on the same breakpoint (<span class="arg">primes.c:50</span>) in the <span class="interface">Breakpoint</span> view and select Core 0 under <span class="interface">Break on Selected Threads or Cores</span> leaving Core 1 still selected too. Continue running (press F8). You should now see that the breakpoint is hit by both Core 0 and Core 1. If your target system has more than two cores then you will still see the other cores printing messages without hitting the breakpoint.</div></li>
+            
+            
+            <li><div class="para">Set a breakpoint on <span class="arg">while(prime_count &lt; target_count)</span> (line 112) and run to it.</div></li>
+            <li><div class="para">Source-level stepping (the <span class="arg">step</span> and <span class="arg">next</span> commands) causes all cores to run until <span class="bold">any</span> core reaches a stop condition, whether that be the step's destination or some other cause, such as a breakpoint. Instruction-level stepping (the <span class="arg">stepi</span> and <span class="arg">nexti</span> commands) only advances the current core, except in the case where <span class="arg">nexti</span> steps over a function call, which will again cause all cores to run. Step out (the <span class="arg">finish</span> command) also runs all cores, regardless of whether the current mode is source-level or instruction-level step.  To illustrate this:</div></li>
+            <li><div class="para">Note the address of the current instruction for all cores using the <span class="interface">Disassembly</span> view and perform a few steps (press F5 a few times). All cores switch to state <span class="arg">running</span> momentarily and, when the target stops again, will have reached different program addresses.</div></li>
+            <li><div class="para">Press the 'right arrow' button at the top right of the <span class="interface">Debug Control</span> view so that the <span class="arg">i</span> is highlighted and the <span class="arg">s</span> is greyed out, putting the debugger into 'instruction-level step' mode.</div></li>
+            <li><div class="para">Perform a few more steps (press F5) and note that only the current core moves to a new instruction, while other cores do not move or switch to state <span class="arg">running</span>.</div></li>
+            <li><div class="para">As well as using the GUI, source-level stepping can be performed with the <span class="arg">step</span> and <span class="arg">next</span> CLI commands, and instruction-level stepping can be performed with the <span class="arg">stepi</span> and <span class="arg">nexti</span> CLI commands.</div></li>
+            <li><div class="para">Disconnect the debug session.</div></li>
+        </ol>
+    </div>
+
+    <div class="indent">
+        <a name="Code%20Overview"></a><h2>Code Overview</h2>
+        <div class="para">This example shows a bare metal SMP system.  Two CPUs boot and work co-operatively on generating prime numbers.  The prime number generator code is shared between the CPUs, and uses mutexes to control access to shared resources.</div>
+        <div class="para">Shared code and data is located at 0x80000000.  This memory is configured as <span class="arg">Coherent</span> in the page tables.</div>
+
+        <h3>Boot</h3>
+        <div class="para">The boot sequence for the example is shown below:</div>
+<pre class="code">  Reset Vector
+       |
+  Reset_Handler()
+       |
+       ----------------------
+       |                    |
+  primaryCPUInit()   secondaryCPUsInit()
+       |                    |
+    __main()            holding_pen
+       |                    :
+     main()                 :
+       |                    :
+   InitPrimes()             :
+       |                    :
+   SendSGI()                |
+       |                    |
+       ----- main_app() -----
+                 |
+           enableCaches()
+                 |
+         calculatePrimes()
+</pre>
+        <div class="para">The first stage of boot is the reset handler, which is common to all CPUs.  In this stage the stack pointers, MMU, page tables and caches are initialized.</div>
+        <div class="para">For the second stage of boot CPU0 is treated as the primary CPU, and CPU1 is treated as secondary CPU.</div>
+        <div class="para">The secondary CPU (CPU1) branches to <span class="arg">secondaryCPUsInit()</span>.  This function carries out only CPU specific (local) initialization.
+        For the example this involves enabling the Processor Interface of the Interrupt Controller, and enabling the receipt of Software Generated Interrupts (SGIs).
+        Once the initialization is complete the secondary CPU enters a holding pen.  It is released from the holding pen by a SGI from the primary CPU.</div>
+        <div class="para">CPU0 is the primary CPU and branches to <span class="arg">primaryCPUInit()</span>.  This function performs some local initialization, but also the cluster wide (global) configuration.
+        This includes configuring the global enable for the Interrupt Controller.  On reaching main() the primary CPU also initializes the global data used by the application.
+        Once this is done it releases the secondary CPUs from the holding pen by sending a SGI.</div>
+
+        <h3>Application</h3>
+        <div class="para">The application is a simple prime number generator, which is run co-operatively by all the CPUs.  The application's global data is stored in coherent memory, with mutexes used to control access.</div>
+        <div class="para">The body of the application is in the function calculatePrimes() and consists of a loop:</div>
+        <ol>
+            <li><div class="para">Get next number to test</div></li>
+            <li><div class="para">Test number</div></li>
+            <li><div class="para">If number is prime, store to list of primes found</div></li>
+        </ol>
+        <div class="para">The application's global data consists of:</div>
+        <div class="table"><table border="0">
+            <tr>
+<td valign="top" class="table-cell"><div class="table"><span class="arg">prime_numbers[]</span></div></td>
+<td valign="top" class="table-cell"><div class="table">Array of the prime numbers found so far</div></td>
+</tr>
+            <tr>
+<td valign="top" class="table-cell"><div class="table"><span class="arg">next_number</span></div></td>
+<td valign="top" class="table-cell"><div class="table">The next number to be tested</div></td>
+</tr>
+            <tr>
+<td valign="top" class="table-cell"><div class="table"><span class="arg">prime_count</span></div></td>
+<td valign="top" class="table-cell"><div class="table">How many prime numbers have been found so far</div></td>
+</tr>
+        </table></div>
+        <div class="para">The globals are updated using accessor functions.  These functions handle the locking and releasing of the relevent mutex:</div>
+        <div class="table"><table border="0">
+            <tr>
+<td valign="top" class="table-cell"><div class="table"><span class="arg">getNextNumber()</span></div></td>
+<td valign="top" class="table-cell"><div class="table">Returns the next number to test</div></td>
+</tr>
+            <tr>
+<td valign="top" class="table-cell"><div class="table"><span class="arg">addPrime()</span></div></td>
+<td valign="top" class="table-cell"><div class="table">Adds a prime to <span class="arg">prime_numbers[]</span> and increments <span class="arg">prime_count</span>
+</div></td>
+</tr>
+        </table></div>
+        <div class="para">The example uses a simple mutex implementation:</div>
+        <div class="table"><table border="0">
+            <tr>
+<td valign="top" class="table-cell"><div class="table"><span class="arg">initMutex()</span></div></td>
+<td valign="top" class="table-cell"><div class="table">Initializes the mutex, called once per mutex at start-up</div></td>
+</tr>
+            <tr>
+<td valign="top" class="table-cell"><div class="table"><span class="arg">lockMutex()</span></div></td>
+<td valign="top" class="table-cell"><div class="table">Blocking call, returns once mutex lock aquired</div></td>
+</tr>
+            <tr>
+<td valign="top" class="table-cell"><div class="table"><span class="arg">unlockMutex()</span></div></td>
+<td valign="top" class="table-cell"><div class="table">Release mutex, returns error if not called by current owner</div></td>
+</tr>
+        </table></div>
+        <div class="para">The <span class="arg">lockMutex()</span> function uses the WFE (Wait For Event) instruction to put the CPU into standby if the requested mutex is currently locked.  The <span class="arg">unlockMutex()</span> executes the SEV (Send Event Instruction) instruction to wake CPU1 waiting on a mutex.</div>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/index.html"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0452-/index.html"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0472-/index.html"><i>ARM Compiler 5 armcc User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0473-/index.html"><i>ARM Compiler 5 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0474-/index.html"><i>ARM Compiler 5 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0471-"><i>ARM Compiler 5 Software Development Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>

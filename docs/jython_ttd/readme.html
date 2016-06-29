@@ -1,0 +1,158 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Jython Translation Table Decoder Example</title>
+<link rel="stylesheet" href="../.common/docs/shared.css" type="text/css">
+</head>
+<body>
+<div id="header">
+<div class="left"><a href="http://www.arm.com"><img class="logo" src="../.common/docs/images/ARM_Corp_RGB.gif" alt="Website" border="0"></a></div>
+<div class="right"></div>
+</div>
+<div id="sub_menu"></div>
+<div id="content_container">
+    
+    <a name="Jython%20Translation%20Table%20Decoder%20Example"></a><h1>Jython Translation Table Decoder Example - ARM®DS-5™</h1>
+    
+        <div class="para">This example illustrates the use of a Jython script in DS-5 Debugger to decode and display the contents of the Translation Tables used by the Memory Management Unit (MMU) in a target.</div>
+    <div class="note"><div class="para">
+<span class="bold">Note</span><br>
+                    For information on locating the example files and extracting them for use either on the command-line or in Eclipse, see the <a href="../install.html">installation instructions</a>.
+                    </div></div>
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example illustrates the use of a Jython script in DS-5 Debugger to decode and display the contents of the Translation Tables used by the Memory Management Unit (MMU) in a target.
+It can be used with DS-5 Debugger connected to any ARM-based target, either bare-metal or Linux.
+        It uses several DS-5 Debugger-specific Jython classes/services (such as <span class="arg">getExecutionContext()</span>, <span class="arg">getRegisterService()</span>, <span class="arg">getMemoryService()</span>, etc) to perform the operation.
+        This example is intended to illustrate features of the DS-5 Debugger - it is not intended to be a tutorial on Jython.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Overview%20of%20the%20MMU%20and%20the%20TTD%20script"></a><h2>Overview of the MMU and the TTD script</h2>
+
+<div class="para">The MMU allows us to manage tasks as independent programs running in their own private virtual memory space. These virtual memory addresses are translated to different main memory physical addresses using the MMU hardware and entries in a page table. These entries describe the address translation, access permissions and memory attributes necessary for that page. The page table entries are indexed by virtual address.</div>
+
+<div class="para">Virtual memory is managed in blocks (16MB, 1MB, 64KB and 4KB). The first level table entries describe a 1MB section while the second level page table further splits a 1MB block up into 4KB pages (16MB and 64KB pages are outside the scope of this article). When the CPU intends to read or write a virtual memory address, the MMU uses the top bits of the virtual address (VA) to index into the page table and locate a particular section or page. The top bits of the page table entry contain the real physical address (PA) of the same section or page in main memory.</div>
+
+<div class="para">The page tables can be allocated anywhere in main memory. However, the address of the first level page table must be specified in the TTBR{n} registers, so the MMU hardware can perform the translation lookups automatically.</div>
+
+<div class="para">An operating system may decide to split user threads and kernel page tables in which case both the TTBR0 and TTBR1 registers will be used. Simpler implementations may use TTBR0 and leave TTBR1 unused (this split is configured in the TTBCR register).</div>
+
+<div class="para">The TTD script reads the TTBR{n} registers and dumps the page tables for the current context of execution (Bare-metal or Linux OS). Some bits of the page table entries are checked to determine whether an entry is a Section (1 MB), Super-section (16 MB), Small page (4 KB) or Large page (64 KB), or a Fault access. All this information can be dumped in the DS-5 console, or saved in a text file for further analysis.</div>
+
+<div class="para">The script is currently only intended for processors configuring the MMU for "short descriptor" page table format. Significant changes to the script will be required to support the new "long descriptor" page-table format as supported by the Cortex-A15.</div>
+    </div>
+
+    <div class="indent">
+        <a name="Using%20the%20example"></a><h2>Using the example</h2>
+        <div class="para">To use this example, first connect DS-5 Debugger to a target in the normal way, run some code, then stop the target at the point of interest.  Then run the <span class="arg">ttd.py</span> Jython script in one of the following ways:</div>
+        <div class="para">In the <span class="interface">Command</span> field of the <span class="interface">Command</span> view, enter the <span class="arg">source</span> command to run <span class="arg">ttd.py</span>, for example:</div>
+<pre class="code">
+source jython_ttd/ttd.py -h
+</pre>
+<div class="para">which outputs:</div>
+<pre class="code">
+Translation Table Decoder v5.18
+Usage: ttd [options]
+Options:
+-d          dump translation table given by TTBR0/TTBR1 registers
+-a address  dump translation table given by a (virtual) address
+-s symbol   dump translation table given by a symbol name (symbols must first be loaded into DS-5 Debugger)
+-f file     dump data to a text file
+-h          print this help
+</pre>
+
+        <div class="para">Alternatively, "drag and drop" the <span class="arg">ttd.py</span> file from the <span class="interface">Project Explorer</span> view into the <span class="interface">Scripts</span> view, then double-click on it to execute it.  The <span class="interface">Jython Script Parameters</span> control in the <span class="interface">Scripts</span> view also allows you to specify parameters to be passed to a script.</div>
+
+        <div class="para">For an example of a bare-metal application, launch <span class="arg">fireworks_AC5-Cortex-A9x1-FVP</span>, stop at the breakpoint on main() on CPU0, then execute the script, which gives output like this:</div>
+<pre class="code">
+source jython_ttd/ttd.py -d
+</pre>
+<div class="para">which outputs:</div>
+<pre class="code">
+Translation Table Decoder v5.18
+CPU Cortex-A9
+TTBR1 disabled
+TTBR0 page table (address: 0x80500000L / size: 16 KB - 4096 Entries)
+TTBR0 page table (address: 0x80500000L / size: 16 KB - 4096 Entries)
+  + Page Table Entry (448) = Secure Physical Addr:0x1c000c06L
+      * (Section page:        1 MB) Virtual Addr: 0x1c000000L --&gt; Physical Addr: 0x1c000000L
+  + Page Table Entry (449) = Secure Physical Addr:0x1c100c06L
+      * (Section page:        1 MB) Virtual Addr: 0x1c100000L --&gt; Physical Addr: 0x1c100000L
+  + Page Table Entry (704) = Secure Physical Addr:0x2c000c06L
+      * (Section page:        1 MB) Virtual Addr: 0x2c000000L --&gt; Physical Addr: 0x2c000000L
+  + Page Table Entry (2048) = Secure Physical Addr:0x80014c06L
+      * (Section page:        1 MB) Virtual Addr: 0x80000000L --&gt; Physical Addr: 0x80000000L
+  + Page Table Entry (2054) = Secure Physical Addr:0x80600c06L
+      * (Section page:        1 MB) Virtual Addr: 0x80600000L --&gt; Physical Addr: 0x80600000L
+Done!
+</pre>
+
+        <div class="para">To dump the Page Table entry for a specific address:</div>
+<pre class="code">
+source jython_ttd/ttd.py -a 0x80000000
+</pre>
+<div class="para">which outputs:</div>
+<pre class="code">
+Translation Table Decoder v5.18
+CPU Cortex-A9
+TTBR1 disabled
+TTBR0 page table (address: 0x80500000L / size: 16 KB - 4096 Entries)
+  + Page Table Entry (2048) = Secure Physical Addr:0x80014c06L
+      * (Section page:        1 MB) Virtual Addr: 0x80000000L --&gt; Physical Addr: 0x80000000L
+Done!
+</pre>
+
+        <div class="para">To dump the Page Table entry for a given symbol name (symbols must have been loaded into DS-5 Debugger):</div>
+<pre class="code">
+source jython_ttd/ttd.py -s sineTable
+</pre>
+<div class="para">which outputs:</div>
+<pre class="code">
+Translation Table Decoder v5.18
+CPU Cortex-A9
+TTBR1 disabled
+TTBR0 page table (address: 0x80500000L / size: 16 KB - 4096 Entries)
+*** Symbol: sineTable - Virtual Addr: 0x80024cd4L ***
+  + Page Table Entry (2048) = Secure Physical Addr:0x80014c06L
+      * (Section page:        1 MB) Virtual Addr: 0x80000000L --&gt; Physical Addr: 0x80000000L
+Done!
+</pre>
+
+        <div class="para">To dump all the Page Table entries and save them to a file:</div>
+<pre class="code">
+source jython_ttd/ttd.py -d -f dump.txt
+</pre>
+<div class="para">which outputs:</div>
+<pre class="code">
+Translation Table Decoder v5.18
+CPU Cortex-A9
+TTBR1 disabled
+TTBR0 page table (address: 0x80500000L / size: 16 KB - 4096 Entries)
+Data will be exported to file: dump.txt
+Done!
+</pre>
+
+        <div class="para">It is also possible to trigger execution of a Jython script (for example, this ttd.py script), when a breakpoint is hit:</div>
+        <ol>
+            <li><div class="para">Connect to a target, and set a breakpoint in the code in the normal way</div></li>
+            <li><div class="para">In the <span class="interface">Breakpoints</span> view, right-mouse-click on the breakpoint and select <span class="interface">Properties</span>
+</div></li>
+            <li><div class="para">In the <span class="interface">On break, run script</span> field, enter the name of the Jython (.py) script you wish to run.  A Debugger (.ds) script could alternatively be specified here instead.</div></li>
+            <li><div class="para">Run the code, and when the breakpoint is hit, the specified script will execute.</div></li>
+        </ol>
+
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358799450937.html"><i>Debugging with scripts</i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0446-/deb1358797902966.html"><i>Configuring and connecting to a target </i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="http://infocenter.arm.com/help/topic/com.arm.doc.dui0481-/index.html"><i>ARM DS-5 ARM DSTREAM User Guide</i></a></div></li>
+    </ul></div>
+</div>
+<div class="double_dotted_divider"></div>
+<div class="footer">Copyright© 2010-2016 ARM Limited. All Rights Reserved.</div>
+</body>
+</html>
