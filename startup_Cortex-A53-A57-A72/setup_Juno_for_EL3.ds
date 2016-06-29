@@ -1,0 +1,8 @@
+core apply all set var $AARCH64::$System::$Other::$SCTLR_EL3 = 0x0
+core apply all set var $AARCH64::$System::$Secure::$SCR_EL3 = 0x0
+set var $AARCH64::$System::$PSTATE::$DAIF.D = 1
+set var $AARCH64::$System::$PSTATE::$DAIF.A = 1
+set var $AARCH64::$System::$PSTATE::$DAIF.I = 1
+set var $AARCH64::$System::$PSTATE::$DAIF.F = 1
+set var $AARCH64::$System::$PSTATE::$Mode.M = 13
+memory set_typed AXI<PROT=1>:0x000000002A4A0120 (unsigned int) 0x80000000
