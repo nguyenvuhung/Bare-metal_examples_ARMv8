@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="com.arm.toolchain.v6.1876945062">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.arm.toolchain.v6.1876945062" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="com.arm.eclipse.builder.armcc.error" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration buildProperties="" id="com.arm.toolchain.v6.1876945062" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="com.arm.toolchain.v6.1876945062.1214426814" name="/" resourcePath="">
+						<toolChain id="com.arm.toolchain.v6.713361567" name="ARM Compiler 6 (DS-5 built-in)" superClass="com.arm.toolchain.v6">
+							<targetPlatform id="com.arm.toolchain.v6.1876945062.2063594009" name=""/>
+							<builder id="com.arm.toolchain.v6.builder.11988172" managedBuildOn="false" name="Gnu Make Builder.Default" superClass="com.arm.toolchain.v6.builder"/>
+							<tool id="com.arm.tool.c.compiler.v6.1444122181" name="ARM C Compiler 6" superClass="com.arm.tool.c.compiler.v6"/>
+							<tool id="com.arm.tool.cpp.compiler.v6.828044887" name="ARM C++ Compiler 6" superClass="com.arm.tool.cpp.compiler.v6"/>
+							<tool id="com.arm.tool.assembler.v6.1139595559" name="ARM Assembler 6" superClass="com.arm.tool.assembler.v6"/>
+							<tool id="com.arm.tool.c.linker.v6.435794603" name="ARM Linker 6" superClass="com.arm.tool.c.linker.v6"/>
+							<tool id="com.arm.tool.librarian.v6.1353634540" name="ARM Librarian 6" superClass="com.arm.tool.librarian.v6"/>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="fireworks_AEMv8-FVP.null.1966573578" name="fireworks_AEMv8-FVP"/>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+</cproject>
